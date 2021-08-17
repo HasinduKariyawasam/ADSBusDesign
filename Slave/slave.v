@@ -14,70 +14,70 @@ module slave #(
 	output reg DataOut=0);
 
 
-    reg [ N-1 : 0 ] BRAMmem [0 : MemN*1024-1];
+    reg [ N-1 : 0 ] BRAMmem [0 : MemN*1024-1];      //BRAM Block
 
     localparam ADN_BITS = $clog2(ADN);
     localparam N_BITS   = $clog2(N);
-    localparam IDLE     = 2'd0;
-    localparam AD       = 2'd1;
-    localparam WD       = 2'd2;
-    localparam RD       = 2'd3;
+    localparam IDLE     = 2'd0;             //IDLE STATE
+    localparam AD       = 2'd1;             //Address Decode State for Read Operations
+    localparam ADWR      = 2'd2;            //Address Decode and Write Decode State for Write Operations
+    localparam RD       = 2'd3;             //Read State for Read Operations
 
 
-    reg [1:0] state = IDLE;
-    reg [1:0] next_state;
-    reg [ADN-1:0] AddressReg;
-    reg [N-1:0] WriteDataReg;
-    reg [N-1:0] ReadDataReg;
-    reg  [N_BITS:0] counterN = 0;
-    reg  [ADN_BITS:0] counterADN = 0;
+    reg [1:0]       state           = IDLE;
+    reg [1:0]       next_state;
+    reg [ADN-1:0]   AddressReg      = 0;
+    reg [N-1:0]     WriteDataReg    = 0;
+    reg [N-1:0]     ReadDataReg     = 0;
+    reg [N_BITS:0]  counterN        = 0;
+    reg [ADN_BITS:0]counterADN      = 0;
 
-
+    ////////////////////////////////////////////////////////////////////////////////
+    //Next State Decode Logic
     always @(*) begin
         case (state)
             IDLE : begin
-                if(validIn) next_state = AD;
-                else        next_state = IDLE;                
+                if      (validIn && wren)               next_state <= ADWR;
+                else if (validIn && ~wren)              next_state <= AD ;
+                else                                    next_state <= IDLE;                
             end
             AD: begin
-                if((counterADN == ADN) && validIn && wren) next_state <= WD;   
-                else if ((counterADN == ADN) &&  ~wren)    next_state <= RD;  
-                else next_state <= AD;
+                if ((counterADN == ADN) && ~wren)       next_state <= RD;  
+                else                                    next_state <= AD;
             end
-            WD: begin
-                if(counterN == N)   next_state <= IDLE;
-                else                next_state <= WD;
+            ADWR: begin
+                if(counterN == N)                       next_state <= IDLE;
+                else                                    next_state <= ADWR;
             end
             RD: begin
-                if(counterN == N+1) next_state <= IDLE;
-                else                next_state <= RD;
+                if(counterN == N+1)                     next_state <= IDLE;
+                else                                    next_state <= RD;
             end
-
-
-        endcase
-        
+        endcase 
     end
 
+    ///////////////////////////////////////////////////////////////////////////////////
+    //State Sequencer
     always @(posedge clk) begin
         state <= next_state;
     end
-
-
-    //output decode
     
-    
-
-
-
+    ///////////////////////////////////////////////////////////////////////////////////
+    //Output Logic
     always @(posedge clk) begin
         case(state)
+            ///////////////////////////////////////////////////////
             IDLE: begin
                 ready <= 1;
                 counterADN <= 0;
                 counterN <= 0;
+                AddressReg <= 0;
+                WriteDataReg <= 0;
+                ReadDataReg <= 0;
+                DataOut <= 0;
 
             end
-
+            ///////////////////////////////////////////////////////
             AD: begin
                 
                 if((counterADN < ADN) && validIn) begin
@@ -90,23 +90,34 @@ module slave #(
                     ready      <= 1 ;
                 end   
             end
-
-            WD: begin
-                
-                if((counterN < N) && validIn) begin
+            ///////////////////////////////////////////////////////
+            ADWR: begin
+                if((counterADN < ADN - N) && validIn ) begin
+                    AddressReg <= {AddressReg[ADN-2:0],Address};
+                    counterADN <= counterADN + 1'b1;
+                    ready      <= 0 ;
+                    
+                end
+                else if((counterADN < ADN) && validIn) begin
+                    AddressReg <= {AddressReg[ADN-2:0],Address};
                     WriteDataReg <= {WriteDataReg[N-2:0],DataIn};
                     counterN <= counterN + 1'b1;
+                    counterADN <= counterADN + 1'b1;
                     ready      <= 0 ;
-                end   
+                end    
                 else begin
                     if(counterN == N) begin
                         BRAMmem[AddressReg] <= WriteDataReg;
                         ready      <= 1 ;
                     end
-                    else    WriteDataReg <= WriteDataReg;                    
-                end  
+                    else begin
+                        AddressReg <= AddressReg;
+                        WriteDataReg <= WriteDataReg;     
+                        ready      <= 1 ;
+                    end    
+                end 
             end
-
+            /////////////////////////////////////////////////////////
             RD: begin
 
                 if (counterN == 0) begin
@@ -124,16 +135,9 @@ module slave #(
                     else begin
                         validOut <= 0;
                     end
-
-
-                end
-
-
-                
+                end               
             end
-
-        endcase    
-    
+        endcase     
     end
 
 

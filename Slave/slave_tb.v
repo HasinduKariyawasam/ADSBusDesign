@@ -42,47 +42,42 @@ module slave_tb();
       Address = 0;
       @(posedge clk);
       Address = 0;
+      DataIn = 1;
       @(posedge clk);
       Address = 1;
+      DataIn = 1;
       @(posedge clk);
+      DataIn = 1;
       Address = 1;
       @(posedge clk);
+      DataIn = 0;
       Address = 0;
       @(posedge clk);
+      DataIn = 0;
       Address = 1;
       @(posedge clk);
+      DataIn = 1;
       Address = 0;
       @(posedge clk);
+      DataIn = 0;
       Address = 0;
       @(posedge clk);
+      DataIn = 1;
       Address = 1;
 
       @(posedge clk);
       Address = 0;
+      DataIn = 0;
       validIn = 0;
 
 
       @(posedge ready);
       DataIn = 0;
-      validIn = 1;
-      
+      validIn = 0;
+      wren = 0;
 
-      @(posedge clk);
-      DataIn = 1;
-      @(posedge clk);
-      DataIn = 1;
-      @(posedge clk);
-      DataIn = 1;
-      @(posedge clk);
-      DataIn = 0;
-      @(posedge clk);
-      DataIn = 0;
-      @(posedge clk);
-      DataIn = 1;
-      @(posedge clk);
-      DataIn = 0;
-      @(posedge clk);
-      DataIn = 1;
+      #(CLK_PERIOD*3);
+      
 
       @(posedge clk);
       validIn = 0;

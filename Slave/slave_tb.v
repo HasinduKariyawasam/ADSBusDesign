@@ -1,0 +1,137 @@
+`timescale 1ns/1ps
+
+module slave_tb();
+
+    reg clk = 0;
+    localparam CLK_PERIOD = 10;
+    initial begin
+      forever begin
+        #(CLK_PERIOD/2);
+        clk <= ~clk;
+      end
+    end
+
+    parameter N = 8;
+    reg         validIn=0;
+    reg         wren=0;
+    reg         Address=0;
+    reg         DataIn=0;
+    wire         ready;
+    wire         validOut;
+    wire         DataOut;
+
+    slave  slave (.*);
+
+
+    initial begin
+      @(posedge clk);
+      validIn = 0; wren = 0; Address = 0; DataIn = 0;
+
+      #(CLK_PERIOD*3);
+
+      @(posedge clk);
+      validIn = 1;wren = 1;
+
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 1;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 1;
+      @(posedge clk);
+      Address = 1;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 1;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 1;
+
+      @(posedge clk);
+      Address = 0;
+      validIn = 0;
+
+
+      @(posedge ready);
+      DataIn = 0;
+      validIn = 1;
+      
+
+      @(posedge clk);
+      DataIn = 1;
+      @(posedge clk);
+      DataIn = 1;
+      @(posedge clk);
+      DataIn = 1;
+      @(posedge clk);
+      DataIn = 0;
+      @(posedge clk);
+      DataIn = 0;
+      @(posedge clk);
+      DataIn = 1;
+      @(posedge clk);
+      DataIn = 0;
+      @(posedge clk);
+      DataIn = 1;
+
+      @(posedge clk);
+      validIn = 0;
+      DataIn = 0;
+      wren = 0;
+
+
+      #(CLK_PERIOD*3);
+
+      @(posedge clk);
+      validIn = 1;wren = 0;
+
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 1;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 1;
+      @(posedge clk);
+      Address = 1;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 1;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 1;
+
+      @(posedge clk);
+      Address = 0;
+      validIn = 0;
+
+
+
+
+
+
+
+      #(CLK_PERIOD*3);
+      $stop;
+
+    end
+endmodule

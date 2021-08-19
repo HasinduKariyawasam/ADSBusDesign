@@ -1,53 +1,101 @@
 module arbiter(input clk, reset,
-               input m1_address, m1_data, m1_valid, m1_address_valid, 
+               input m1_request, m1_address, m1_data, m1_valid, m1_address_valid,
+                     m2_request, m2_address, m2_data, m2_valid, m2_address_valid, 
                      s1_ready, s2_ready, s3_ready,
-               output m1_ready,
+               output m1_ready, m2_ready, m1_available, m2_available,
                       s1_address, s1_data, s1_valid,
                       s2_address, s2_data, s2_valid,
                       s3_address, s3_data, s3_valid);
 
     reg [1:0] address_buf;
     reg [2:0] state;
-    reg connect1, connect2, connect3;
+    reg [1:0] connected_master;
+    reg m1_connect1, m1_connect2, m1_connect3;
+    reg m2_connect1, m2_connect2, m2_connect3;
     wire compare;
 
     parameter [2:0] idle = 3'd0;
-    parameter [2:0] msb1 = 3'd1;
-    parameter [2:0] msb2 = 3'd2;
-    parameter [2:0] connect = 3'd3;
-    parameter [2:0] busy = 3'd4;
+    parameter [2:0] wait_address = 3'd1;
+    parameter [2:0] msb1 = 3'd2;
+    parameter [2:0] msb2 = 3'd3;
+    parameter [2:0] connect = 3'd4;
+    parameter [2:0] busy_m1 = 3'd5;
+    parameter [2:0] busy_m2 = 3'd6;
 
     always @(posedge clk) begin
-        if (reset)  state <= idle;
+        if (reset) begin
+            connected_master <= 2'd0;
+            state <= idle;    
+        end  
         else
             case (state)
                 idle: begin
-                    if (m1_address_valid)   state <= msb1;
-                    else            state <= idle;
+                    if (m1_request && connected_master == 2'd0 && m1_address_valid) begin
+                        connected_master <= 2'd1;
+                        state <= msb1;
+                    end
+                    else if (~m1_request && m2_request && connected_master == 2'd0 && m2_address_valid) begin
+                        connected_master <= 2'd2;
+                        state <= msb1;
+                    end
+                    else begin
+                        connected_master <= 2'd0;
+                        state <= idle;
+                    end  
                 end 
 
                 msb1: begin
-                    address_buf <= {address_buf[0], m1_address};
-                    state <= msb2;
+                    if (connected_master == 2'd1) begin
+                        address_buf <= {address_buf[0], m1_address};
+                        state <= msb2;
+                    end 
+                    else if (connected_master == 2'd2) begin
+                        address_buf <= {address_buf[0], m2_address};
+                        state <= msb2;
+                    end
+                    else    state <= idle;
                 end
 
                 msb2: begin
-                    address_buf <= {address_buf[0], m1_address};
-                    state <= connect;
+                    if (connected_master == 2'd1) begin
+                        address_buf <= {address_buf[0], m1_address};
+                        state <= connect;
+                    end
+                    else if (connected_master == 2'd2) begin
+                        address_buf <= {address_buf[0], m2_address};
+                        state <= connect; 
+                    end
+                    else    state <= idle;
                 end
                 
                 connect: begin
-                    if (connect1 || connect2 || connect3)
-                        state <= busy;
-                    else
-                        state <= idle;
+                    if (connected_master == 2'd1 && (m1_connect1 || m1_connect2 || m1_connect3)) begin
+                        state <= busy_m1;    
+                    end
+                    else if (connected_master == 2'd2 && (m2_connect1 || m2_connect2 || m2_connect3)) begin
+                        state <= busy_m2;
+                    end 
+                    else    state <= idle;
                 end
 
-                busy: begin
-                    if (m1_address_valid)
+                busy_m1: begin
+                    if (~m1_request) begin
+                        state <= idle;
+                    end  
+                    else if (m1_address_valid) begin
                         state <= msb1;
-                    else
-                        state <= busy;
+                    end 
+                    else    state <= busy_m1;
+                end
+
+                busy_m2: begin
+                    if (~m2_request) begin
+                        state <= idle;
+                    end     
+                    else if (m2_address_valid) begin
+                        state <= msb1;
+                    end   
+                    else    state <= busy_m2;
                 end
 
                 default:    state <= idle;
@@ -56,52 +104,91 @@ module arbiter(input clk, reset,
 
     always @(*) begin
         if (reset) begin
-            connect1 = 0;
-            connect2 = 0;
-            connect3 = 0;
+            m1_connect1 = 0;
+            m1_connect2 = 0;
+            m1_connect3 = 0;
+            m2_connect1 = 0;
+            m2_connect2 = 0;
+            m2_connect3 = 0;
         end
-        else if (compare)
+        else if (compare && connected_master == 2'd1) begin
+            m2_connect1 = 0;
+            m2_connect2 = 0;
+            m2_connect3 = 0;
             if (address_buf == 2'b00) begin
-                connect1 = 1;
-                connect2 = 0;
-                connect3 = 0;
+                m1_connect1 = 1;
+                m1_connect2 = 0;
+                m1_connect3 = 0;
             end
             else if (address_buf == 2'b01) begin
-                connect1 = 0;
-                connect2 = 1;
-                connect3 = 0;
+                m1_connect1 = 0;
+                m1_connect2 = 1;
+                m1_connect3 = 0;
             end
             else if (address_buf == 2'b10) begin
-                connect1 = 0;
-                connect2 = 0;
-                connect3 = 1;
+                m1_connect1 = 0;
+                m1_connect2 = 0;
+                m1_connect3 = 1;
             end
             else begin
-                connect1 = 0;
-                connect2 = 0;
-                connect3 = 0;
+                m1_connect1 = 0;
+                m1_connect2 = 0;
+                m1_connect3 = 0;
             end
+        end
+        else if (compare && connected_master == 2'd2) begin
+            m1_connect1 = 0;
+            m1_connect2 = 0;
+            m1_connect3 = 0;
+            if (address_buf == 2'b00) begin
+                m2_connect1 = 1;
+                m2_connect2 = 0;
+                m2_connect3 = 0;
+            end
+            else if (address_buf == 2'b01) begin
+                m2_connect1 = 0;
+                m2_connect2 = 1;
+                m2_connect3 = 0;
+            end
+            else if (address_buf == 2'b10) begin
+                m2_connect1 = 0;
+                m2_connect2 = 0;
+                m2_connect3 = 1;
+            end
+            else begin
+                m2_connect1 = 0;
+                m2_connect2 = 0;
+                m2_connect3 = 0;
+            end
+        end
         else begin
-            connect1 = connect1;
-            connect2 = connect2;
-            connect3 = connect3;
+            m1_connect1 = m1_connect1;
+            m1_connect2 = m1_connect2;
+            m1_connect3 = m1_connect3;
+            m2_connect1 = m2_connect1;
+            m2_connect2 = m2_connect2;
+            m2_connect3 = m2_connect3;
         end
     end
 
     assign compare = (state == connect);
 
-    assign s1_address = (connect1) ? m1_address : 0;
-    assign s1_data = (connect1) ? m1_data : 0;
-    assign s1_valid = (connect1 && (state != msb1 && state != msb2)) ? m1_valid : 0;
+    assign m1_available = (connected_master != 2'd2);
+    assign m2_available = (connected_master != 2'd1);
 
-    assign s2_address = (connect2) ? m1_address : 0;
-    assign s2_data = (connect2) ? m1_data : 0;
-    assign s2_valid = (connect2 && (state != msb1 && state != msb2)) ? m1_valid : 0;
+    assign s1_address = (m1_connect1) ? m1_address : (m2_connect1) ? m2_address : 0;
+    assign s1_data = (m1_connect1) ? m1_data : (m2_connect1) ? m2_data : 0;
+    assign s1_valid = (m1_connect1 && (state != msb1 && state != msb2)) ? m1_valid : (m2_connect1 && (state != msb1 && state != msb2)) ? m2_valid : 0;
 
-    assign s3_address = (connect3) ? m1_address : 0;
-    assign s3_data = (connect3) ? m1_data : 0;
-    assign s3_valid = (connect3 && (state != msb1 && state != msb2)) ? m1_valid : 0;
+    assign s2_address = (m1_connect2) ? m1_address : (m2_connect2) ? m2_address : 0;
+    assign s2_data = (m1_connect2) ? m1_data : (m2_connect2) ? m2_data : 0;
+    assign s2_valid = (m1_connect2 && (state != msb1 && state != msb2)) ? m1_valid : (m2_connect2 && (state != msb1 && state != msb2)) ? m2_valid : 0;
 
-    assign m1_ready = (connect1) ? s1_ready : (connect2) ? s2_ready : (connect3) ? s3_ready: 0;
+    assign s3_address = (m1_connect3) ? m1_address : (m2_connect3) ? m2_address : 0;
+    assign s3_data = (m1_connect3) ? m1_data : (m2_connect3) ? m2_data : 0;
+    assign s3_valid = (m1_connect3 && (state != msb1 && state != msb2)) ? m1_valid : (m2_connect3 && (state != msb1 && state != msb2)) ? m2_valid : 0;
+
+    assign m1_ready = (m1_connect1) ? s1_ready : (m1_connect2) ? s2_ready : (m1_connect3) ? s3_ready: 0;
+    assign m2_ready = (m2_connect1) ? s1_ready : (m2_connect2) ? s2_ready : (m2_connect3) ? s3_ready: 0;
 
 endmodule //arbiter

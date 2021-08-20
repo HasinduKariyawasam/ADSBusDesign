@@ -69,6 +69,7 @@ module slave_tb();
       Address = 0;
       DataIn = 0;
       validIn = 0;
+      wren = 0;
 
 
       @(posedge ready);

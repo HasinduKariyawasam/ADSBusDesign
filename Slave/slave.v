@@ -31,6 +31,9 @@ module slave #(
     localparam RD       = 2'd3;             //Read State for Read Operations
 
 
+
+
+
     reg [1:0]       state           = IDLE;
     reg [1:0]       next_state;
     reg [ADN-1:0]   AddressReg      = 0;
@@ -38,6 +41,15 @@ module slave #(
     reg [N-1:0]     ReadDataReg     = 0;
     reg [N_BITS:0]  counterN        = 0;
     reg [ADN_BITS:0]counterADN      = 0;
+
+
+    assign state_out = state;
+    assign next_state_out = next_state;
+    assign AddressReg_out = AddressReg;
+    assign WriteDataReg_out = WriteDataReg;
+    assign ReadDataReg_out = ReadDataReg;
+    assign counterN_out = counterN;
+    assign counterADN_out = counterADN;
 
     ////////////////////////////////////////////////////////////////////////////////
     //Next State Decode Logic

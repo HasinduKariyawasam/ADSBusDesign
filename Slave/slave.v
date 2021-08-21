@@ -10,6 +10,13 @@ module slave #(
 	
 
 	// Output Ports
+    output [1:0] state_out,
+    output [1:0] next_state_out,
+    output [ADN-1:0]   AddressReg_out,
+    output [N-1:0]     WriteDataReg_out,
+    output [N-1:0]     ReadDataReg_out,
+    output [N_BITS:0]  counterN_out,
+    output [ADN_BITS:0]counterADN_out,
     output reg  ready=0,validOut=0,
 	output reg DataOut=0);
 
@@ -24,6 +31,9 @@ module slave #(
     localparam RD       = 2'd3;             //Read State for Read Operations
 
 
+
+
+
     reg [1:0]       state           = IDLE;
     reg [1:0]       next_state;
     reg [ADN-1:0]   AddressReg      = 0;
@@ -31,6 +41,15 @@ module slave #(
     reg [N-1:0]     ReadDataReg     = 0;
     reg [N_BITS:0]  counterN        = 0;
     reg [ADN_BITS:0]counterADN      = 0;
+
+
+    assign state_out = state;
+    assign next_state_out = next_state;
+    assign AddressReg_out = AddressReg;
+    assign WriteDataReg_out = WriteDataReg;
+    assign ReadDataReg_out = ReadDataReg;
+    assign counterN_out = counterN;
+    assign counterADN_out = counterADN;
 
     ////////////////////////////////////////////////////////////////////////////////
     //Next State Decode Logic
@@ -134,6 +153,7 @@ module slave #(
                     end
                     else begin
                         validOut <= 0;
+                        DataOut <=0;
                     end
                 end               
             end

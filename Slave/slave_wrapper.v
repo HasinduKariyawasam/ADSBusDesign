@@ -3,6 +3,7 @@ module slave_wrapper (
 
 input CLOCK_50,
 input  [17:0] SW,
+input [3:0] KEY,
 output [8:0] LEDG,
 output [17:0] LEDR,
 output [6:0] HEX0,HEX1,HEX2,HEX3,HEX4,HEX5,HEX6,HEX7);
@@ -29,7 +30,7 @@ output [6:0] HEX0,HEX1,HEX2,HEX3,HEX4,HEX5,HEX6,HEX7);
         .wren(SW[1]),
         .Address(SW[2]),
         .DataIn(SW[3]),
-        .clk(SW[17]),
+        .clk(KEY[0]),
 
         .state_out(state_out),
         .next_state_out(next_state_out),
@@ -50,7 +51,7 @@ output [6:0] HEX0,HEX1,HEX2,HEX3,HEX4,HEX5,HEX6,HEX7);
     assign LEDR[1] = SW[1];
     assign LEDR[2] = SW[2];
     assign LEDR[3] = SW[3];
-    assign LEDR[17] = SW[17];
+    assign LEDR[17] = KEY[0];
 
     assign LEDG[6] = state_out[0];
     assign LEDG[7] = state_out[1];

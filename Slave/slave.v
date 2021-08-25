@@ -87,13 +87,13 @@ module slave #(
         case(state)
             ///////////////////////////////////////////////////////
             IDLE: begin
-                ready <= 1;
-                counterADN <= 0;
-                counterN <= 0;
-                AddressReg <= 0;
+                ready       <= 1;
+                counterADN  <= 0;
+                counterN    <= 0;
+                AddressReg  <= 0;
                 WriteDataReg <= 0;
-                ReadDataReg <= 0;
-                DataOut <= 0;
+                ReadDataReg  <= 0;
+                DataOut      <= 0;
 
             end
             ///////////////////////////////////////////////////////

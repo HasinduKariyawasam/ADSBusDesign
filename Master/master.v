@@ -17,7 +17,7 @@ output reg addr_tx = 0,				// address for the output data
 output reg data_tx = 0,				// output data
 output reg valid = 0,					// signal that indicates validity of the data from master
 output reg valid_s = 0,				// valid signal for slave
-output reg read_en_slave = 0, 	// signal to select data read(=1)/write(=0) for slave
+output reg write_en_slave = 0, 	// signal to select data read(=1)/write(=0) for slave
 output reg master_busy = 0,			// signal that indicates the availability of the master to get data from user
 output reg [7:0] data_read = 8'd0,
 output reg [3:0] present = 4'd0,
@@ -45,10 +45,12 @@ fetch = 4'd1,
 write1 = 4'd2,
 write2 = 4'd3,
 write3 = 4'd4,
-read1 = 4'd5,
-read2 = 4'd6,
-read3 = 4'd7,
-read4 = 4'd8;
+write4 = 4'd5,
+read1 = 4'd6,
+read2 = 4'd7,
+read3 = 4'd8,
+read4 = 4'd9,
+read5 = 4'd10;
 
 ///////////////////////////////////////////////////
 //next state decoder
@@ -79,8 +81,19 @@ write1:
 
 write2:
 	begin
-	if  (w_counter < 5'd14)
+	if  (w_counter < 5'd2)
 		next <= write2;	
+	else if (w_counter >= 5'd2)
+		next <= write3;
+	end
+
+write3:
+	next <= write4;
+
+write4:
+	begin
+	if  (w_counter < 5'd14)
+		next <= write4;	
 	else if (w_counter >= 5'd14)
 		next <= idle;
 	end
@@ -91,19 +104,29 @@ read1:
 	
 read2:
 	begin
-	if  (r_counter < 5'd14)
+	if  (r_counter < 5'd2)
 		next <= read2;
-	else if (slave_valid == 1)
-		next <= read3;
 	else
-		next <= read2;
+		next <= read3;
 	end
 
-
 read3:
+	next <= read4;
+
+read4:
+	begin
+	if  (r_counter < 5'd14)
+		next <= read4;
+	else if (slave_valid == 1)
+		next <= read5;
+	else
+		next <= read4;
+	end
+
+read5:
 	begin
 	if (r_counter < 5'd8)
-		next <= read3;
+		next <= read5;
 	else
 		next <= idle;
 	end
@@ -116,7 +139,7 @@ always @(posedge clock)
 	begin
 	clk_counter <= clk_counter +1;
 	present <= next;
-	read_en_slave <= ~read_en;
+	write_en_slave <= ~read_en;
 	enable_posedge <= (enable_posedge << 1);
 	enable_posedge[0] <= enable;
 	clk <= ~clk;
@@ -189,7 +212,38 @@ write2:
 		valid_s <= 0;
 		end
 	end
+
+write3:
+	begin
+		valid_s <= 1;
+	end
+
+write4:
+	begin
+	//sending first 6 bits of the address
+	if  (w_counter < 5'd6)
+		begin
+		w_counter <= w_counter + 5'd1;
+		valid <= 0;
+		addr_tx <= addr_buffer[13];
+		addr_buffer <= (addr_buffer << 1);
+		end
 	
+	//sending remaining bits of the address and data
+	else if (w_counter < 5'd14)
+		begin
+		w_counter <= w_counter + 5'd1;
+		addr_tx <= addr_buffer[13];
+		addr_buffer <= (addr_buffer << 1);
+		data_tx <= data_buffer[7];
+		data_buffer <= (data_buffer << 1);
+		end
+			
+	else if (w_counter == 5'd14)
+		begin
+		valid_s <= 0;
+		end
+	end	
 	
 
 //read data 
@@ -220,8 +274,33 @@ read2:
 		end
 	end
 
-//getting inputs from the data_rx
 read3:
+	begin
+	valid_s <= 1;
+	end	
+	
+read4:
+	begin
+	if  (r_counter < 5'd14)	//sending the read address
+		begin
+		valid <= 0;
+		addr_tx <= addr_buffer[13];
+		addr_buffer <= (addr_buffer << 1);
+		r_counter <= r_counter + 1;
+		end
+	else if (slave_valid == 1) //wait until slave_valid signal
+		begin
+		valid_s <= 0;
+		r_counter <=0;
+		end
+	else
+		begin
+		valid_s <= 0;
+		end
+	end
+
+//getting inputs from the data_rx
+read5:
 	begin
 	if (r_counter < 5'd8)
 		begin

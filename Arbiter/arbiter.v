@@ -1,13 +1,15 @@
 module arbiter(input clk, reset,
-               input m1_request, m1_address, m1_data, m1_valid, m1_address_valid,
-                     m2_request, m2_address, m2_data, m2_valid, m2_address_valid, 
+               input m1_request, m1_address, m1_data, m1_valid, m1_address_valid, m1_write_en,
+                     m2_request, m2_address, m2_data, m2_valid, m2_address_valid, m2_write_en,
                      s1_data_in, s2_data_in, s3_data_in,
                      s1_ready, s2_ready, s3_ready,
+                     s1_valid_out, s2_valid_out, s3_valid_out,
                output m1_data_out, m2_data_out,
                       m1_ready, m2_ready, m1_available, m2_available,
-                      s1_address, s1_data, s1_valid,
-                      s2_address, s2_data, s2_valid,
-                      s3_address, s3_data, s3_valid,
+                      m1_valid_in, m2_valid_in,
+                      s1_address, s1_data, s1_valid, s1_write_en,
+                      s2_address, s2_data, s2_valid, s2_write_en,
+                      s3_address, s3_data, s3_valid, s3_write_en,
                output reg [2:0] state,
                output reg m1_connect1, m1_connect2, m1_connect3,
                output reg m2_connect1, m2_connect2, m2_connect3);
@@ -120,7 +122,7 @@ module arbiter(input clk, reset,
     // Master to slave connection logic
 
     always @(*) begin
-        if (reset) begin
+        if (reset || (state == idle)) begin
             m1_connect1 = 1'b0;
             m1_connect2 = 1'b0;
             m1_connect3 = 1'b0;
@@ -216,19 +218,25 @@ module arbiter(input clk, reset,
     assign s1_address = (m1_connect1) ? m1_address : (m2_connect1) ? m2_address : 1'b0;
     assign s1_data = (m1_connect1) ? m1_data : (m2_connect1) ? m2_data : 1'b0;
     assign s1_valid = (m1_connect1 && (state != msb1 && state != msb2)) ? m1_valid : (m2_connect1 && (state != msb1 && state != msb2)) ? m2_valid : 1'b0;
+    assign s1_write_en = (m1_connect1) ? m1_write_en : (m2_connect1) ? m2_write_en : 1'b0;
 
     assign s2_address = (m1_connect2) ? m1_address : (m2_connect2) ? m2_address : 1'b0;
     assign s2_data = (m1_connect2) ? m1_data : (m2_connect2) ? m2_data : 1'b0;
     assign s2_valid = (m1_connect2 && (state != msb1 && state != msb2)) ? m1_valid : (m2_connect2 && (state != msb1 && state != msb2)) ? m2_valid : 1'b0;
+    assign s2_write_en = (m1_connect2) ? m1_write_en : (m2_connect2) ? m2_write_en : 1'b0;
 
     assign s3_address = (m1_connect3) ? m1_address : (m2_connect3) ? m2_address : 1'b0;
     assign s3_data = (m1_connect3) ? m1_data : (m2_connect3) ? m2_data : 1'b0;
     assign s3_valid = (m1_connect3 && (state != msb1 && state != msb2)) ? m1_valid : (m2_connect3 && (state != msb1 && state != msb2)) ? m2_valid : 1'b0;
+    assign s3_write_en = (m1_connect3) ? m1_write_en : (m2_connect3) ? m2_write_en : 1'b0;
 
     assign m1_ready = (m1_connect1) ? s1_ready : (m1_connect2) ? s2_ready : (m1_connect3) ? s3_ready: 1'b0;
     assign m2_ready = (m2_connect1) ? s1_ready : (m2_connect2) ? s2_ready : (m2_connect3) ? s3_ready: 1'b0;
 
     assign m1_data_out = (m1_connect1) ? s1_data_in : (m1_connect2) ? s2_data_in : (m1_connect3) ? s3_data_in: 1'b0;
     assign m2_data_out = (m2_connect1) ? s1_data_in : (m2_connect2) ? s2_data_in : (m2_connect3) ? s3_data_in: 1'b0;
+
+    assign m1_valid_in = (m1_connect1) ? s1_valid_out : (m1_connect2) ? s2_valid_out : (m1_connect3) ? s3_valid_out: 1'b0;
+    assign m2_valid_in = (m2_connect1) ? s1_valid_out : (m2_connect2) ? s2_valid_out : (m2_connect3) ? s3_valid_out: 1'b0;
 
 endmodule //arbiter

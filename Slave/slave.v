@@ -15,8 +15,8 @@ module slave #(
     output [ADN-1:0]   AddressReg_out,
     output [N-1:0]     WriteDataReg_out,
     output [N-1:0]     ReadDataReg_out,
-    output [N_BITS:0]  counterN_out,
-    output [ADN_BITS:0]counterADN_out,
+    // output [N_BITS:0]  counterN_out,
+    // output [ADN_BITS:0]counterADN_out,
     output reg  ready=0,validOut=0,
 	output reg DataOut=0);
 

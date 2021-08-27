@@ -1,8 +1,10 @@
 module arbiter(input clk, reset,
                input m1_request, m1_address, m1_data, m1_valid, m1_address_valid,
                      m2_request, m2_address, m2_data, m2_valid, m2_address_valid, 
+                     s1_data_in, s2_data_in, s3_data_in,
                      s1_ready, s2_ready, s3_ready,
-               output m1_ready, m2_ready, m1_available, m2_available,
+               output m1_data_out, m2_data_out,
+                      m1_ready, m2_ready, m1_available, m2_available,
                       s1_address, s1_data, s1_valid,
                       s2_address, s2_data, s2_valid,
                       s3_address, s3_data, s3_valid,
@@ -225,5 +227,8 @@ module arbiter(input clk, reset,
 
     assign m1_ready = (m1_connect1) ? s1_ready : (m1_connect2) ? s2_ready : (m1_connect3) ? s3_ready: 1'b0;
     assign m2_ready = (m2_connect1) ? s1_ready : (m2_connect2) ? s2_ready : (m2_connect3) ? s3_ready: 1'b0;
+
+    assign m1_data_out = (m1_connect1) ? s1_data_in : (m1_connect2) ? s2_data_in : (m1_connect3) ? s3_data_in: 1'b0;
+    assign m2_data_out = (m2_connect1) ? s1_data_in : (m2_connect2) ? s2_data_in : (m2_connect3) ? s3_data_in: 1'b0;
 
 endmodule //arbiter

@@ -17,6 +17,7 @@ output reg addr_tx = 0,				// address for the output data
 output reg data_tx = 0,				// output data
 output reg valid = 0,					// signal that indicates validity of the data from master
 output reg valid_s = 0,				// valid signal for slave
+output reg read_en_slave = 0, 	// signal to select data read(=1)/write(=0) for slave
 output reg master_busy = 0,			// signal that indicates the availability of the master to get data from user
 output reg [7:0] data_read = 8'd0,
 output reg [3:0] present = 4'd0,
@@ -115,6 +116,7 @@ always @(posedge clock)
 	begin
 	clk_counter <= clk_counter +1;
 	present <= next;
+	read_en_slave <= ~read_en;
 	enable_posedge <= (enable_posedge << 1);
 	enable_posedge[0] <= enable;
 	clk <= ~clk;

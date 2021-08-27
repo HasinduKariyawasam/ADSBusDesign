@@ -49,11 +49,11 @@ module arbiter(input clk, reset,
                 idle: begin
                     if (m1_request && connected_master == 2'd0 && m1_address_valid) begin
                         connected_master <= 2'd1;
-                        state <= msb1;
+                        state <= wait_address;
                     end
                     else if (~m1_request && m2_request && connected_master == 2'd0 && m2_address_valid) begin
                         connected_master <= 2'd2;
-                        state <= msb1;
+                        state <= wait_address;
                     end
                     else begin
                         connected_master <= 2'd0;
@@ -61,16 +61,25 @@ module arbiter(input clk, reset,
                     end  
                 end 
 
+                wait_address: begin
+                    if ((m1_valid == 1'b1) || (m2_valid == 1'b1)) begin
+                        state <= msb1;
+                    end
+                    else begin
+                        state <= wait_address;
+                    end
+                end
+
                 msb1: begin
-                    if (connected_master == 2'd1) begin
+                    if (connected_master == 2'd1 && m1_valid == 1'b1) begin
                         address_buf <= {address_buf[0], m1_address};
                         state <= msb2;
                     end 
-                    else if (connected_master == 2'd2) begin
+                    else if (connected_master == 2'd2 && m2_valid == 1'b1) begin
                         address_buf <= {address_buf[0], m2_address};
                         state <= msb2;
                     end
-                    else    state <= idle;
+                    else    state <= msb1;
                 end
 
                 msb2: begin
@@ -214,6 +223,8 @@ module arbiter(input clk, reset,
 
     assign m1_available = (connected_master != 2'd2);
     assign m2_available = (connected_master != 2'd1);
+    // assign m1_available = ~(~m1_request && m2_request && connected_master == 2'd0);
+    // assign m2_available = ~(m1_request && connected_master == 2'd0);
 
     assign s1_address = (m1_connect1) ? m1_address : (m2_connect1) ? m2_address : 1'b0;
     assign s1_data = (m1_connect1) ? m1_data : (m2_connect1) ? m2_data : 1'b0;

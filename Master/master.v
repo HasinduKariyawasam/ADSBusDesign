@@ -41,16 +41,17 @@ reg clk = 0;
  
 parameter
 idle = 4'd0,
-fetch = 4'd1,
-write1 = 4'd2,
-write2 = 4'd3,
-write3 = 4'd4,
-write4 = 4'd5,
-read1 = 4'd6,
-read2 = 4'd7,
-read3 = 4'd8,
-read4 = 4'd9,
-read5 = 4'd10;
+check_bus = 4'd1,
+fetch = 4'd2,
+write1 = 4'd3,
+write2 = 4'd4,
+write3 = 4'd5,
+write4 = 4'd6,
+read1 = 4'd7,
+read2 = 4'd8,
+read3 = 4'd9,
+read4 = 4'd10,
+read5 = 4'd11;
 
 ///////////////////////////////////////////////////
 //next state decoder
@@ -60,10 +61,12 @@ case(present)
 idle:
 	begin
 	if (enable == 1)
-		next <= fetch;
+		next <= check_bus;
 	else
 		next <= idle;
 	end
+
+check_bus: next <= fetch;
 
 fetch:
 	begin
@@ -154,14 +157,22 @@ idle:
 	begin
 	data_buffer <= 8'd0;	
 	addr_buffer <= 14'd0;
-	bus_req	<= 0;
+	// bus_req	<= 0;
 	master_busy <= 0;
 	w_counter <= 5'd0;
 	r_counter <= 5'd0;
 	addr_tx <= 0;
 	data_tx <= 0;
-	valid <= 0;
+	// valid <= 0;
 	valid_s <= 0;
+	if (enable==1) begin
+		bus_req <= 1;
+		valid <= 1;
+	end	
+	else begin
+		bus_req <= 0;
+		valid <= 0;
+	end			
 	
 	end
 
@@ -174,13 +185,15 @@ fetch:
 	addr_buffer <= addr_in;
 	w_counter <= 5'd0;
 	r_counter <= 5'd0;
+	if (bus_ready)	valid <= 0;
+	else			valid <= 1;
 	end
 
 //write data 
 // set data valid signal high
 write1:
 	begin
-	valid <= 1;
+	valid <= 0;
 	valid_s <= 1;
 	w_counter <= 5'd0;
 	end
@@ -251,7 +264,7 @@ write4:
 read1:
 	begin
 	valid_s <= 1;
-	valid <= 1;
+	valid <= 0;
 	end	
 	
 read2:

@@ -51,8 +51,8 @@ module top_level_testbench ();
         m2_enable = 1; #40; m2_enable = 0;
         #1000;
 
-        m1_read_en = 0;
-        addr_in1 = 14'd5097; data_in1 = 8'd101;
+        m1_read_en = 0; m2_read_en = 0;
+        addr_in1 = 14'd5097; data_in1 = 8'd102;
         addr_in2 = 14'd5098; data_in2 = 8'd102;
         m1_enable = 1; m2_enable = 1; #40; 
         m1_enable = 0; m2_enable = 0;

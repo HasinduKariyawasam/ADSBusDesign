@@ -15,10 +15,13 @@ module arbiter(input clk, reset,
                output reg m2_connect1, m2_connect2, m2_connect3);
 
     reg [1:0] address_buf;
-    
+    reg [2:0] prev_state;
+    reg [3:0] busy_counter;
     reg [1:0] connected_master;
+    wire [1:0] connected_slave;
     wire [3:0] connect_state;
-    wire compare;
+    wire compare, slave_ready;
+    wire connected_slave_ready;
 
     /*
     Following registers were set as output for testing purposes. 
@@ -36,6 +39,7 @@ module arbiter(input clk, reset,
     parameter [2:0] connect = 3'd4;         // Connecting the master to slave 
     parameter [2:0] busy_m1 = 3'd5;         // Master 1 is using the bus
     parameter [2:0] busy_m2 = 3'd6;         // Master 2 is using the bus
+    parameter [2:0] switch_master = 3'd7;   // Switch master during split transaction
 
     // State machine
 
@@ -107,6 +111,10 @@ module arbiter(input clk, reset,
                 busy_m1: begin
                     if (~m1_request) begin
                         state <= idle;
+                    end
+                    else if ((busy_counter >= 4'd4) && (m2_request)) begin
+                        state <= switch_master;
+                        prev_state <= busy_m1;
                     end  
                     else if (m1_address_valid) begin
                         state <= msb1;
@@ -117,6 +125,10 @@ module arbiter(input clk, reset,
                 busy_m2: begin
                     if (~m2_request) begin
                         state <= idle;
+                    end 
+                    else if ((busy_counter >= 4'd4) && (m1_request)) begin
+                        state <= switch_master;
+                        prev_state <= busy_m2;
                     end     
                     else if (m2_address_valid) begin
                         state <= msb1;
@@ -124,12 +136,38 @@ module arbiter(input clk, reset,
                     else    state <= busy_m2;
                 end
 
+                switch_master: begin
+                    if (connected_master == 2'd1 && m2_address_valid) begin
+                        connected_master <= 2'd2;
+                        state <= wait_address;
+                    end
+                    else if (connected_master == 2'd2 && m1_address_valid) begin
+                        connected_master <= 2'd1;
+                        state <= wait_address;
+                    end
+                    else begin
+                        state <= prev_state;
+                    end
+                end
+
                 default:    state <= idle;
             endcase
     end
 
-    // Master to slave connection logic
+    // Busy counter
+    always @(posedge clk ) begin
+        if (reset)  begin
+            busy_counter <= 4'd0;
+        end
+        else if (~slave_ready)  begin
+            busy_counter <= busy_counter + 4'd1;
+        end
+        else begin
+            busy_counter <= 4'd0;
+        end
+    end
 
+    // Master to slave connection logic
     always @(*) begin
         if (reset || (state == idle)) begin
             m1_connect1 = 1'b0;
@@ -139,7 +177,7 @@ module arbiter(input clk, reset,
             m2_connect2 = 1'b0;
             m2_connect3 = 1'b0;
         end
-        else if (compare)  begin
+        else if (compare && slave_ready)  begin
             case (connect_state)
                 4'd3:   begin
                     m1_connect1 = 1'b1;
@@ -220,6 +258,9 @@ module arbiter(input clk, reset,
     assign compare = (state == connect);
 
     assign connect_state = (4'd3 * connected_master) + address_buf;
+
+    assign slave_ready = (address_buf == 2'd0) ? s1_ready : (address_buf == 2'd1) ? s2_ready : (address_buf == 2'd2) ? s3_ready : 0;
+    assign connected_slave = (m1_connect1 || m2_connect1) ? 2'd1 : (m1_connect2 || m2_connect2) ? 2'd2 : (m1_connect3 || m2_connect3) ? 2'd3 : 2'd0;
 
     assign m1_available = (connected_master != 2'd2);
     assign m2_available = (connected_master != 2'd1);

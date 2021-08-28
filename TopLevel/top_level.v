@@ -1,8 +1,10 @@
-module top_level (input clk, reset, 
-                  input m1_enable, m1_read_en,
-                  input m2_enable, m2_read_en,
-                  input [7:0] data_in1, data_in2,
-                  input [13:0] addr_in1, addr_in2);
+module top_level (input clk, reset, start,
+                  input [4:0] state_in,
+                  output [4:0] controller_state,
+                  output [3:0] m1_state, m2_state,
+                  output [7:0] m1_data_read, m2_data_read,
+                  output [1:0] s1_state,s2_state,s3_state,
+                  output [2:0] arbiter_state);
 
     // wires from master to arbiter
     wire m1_request, m1_address, m1_data, m1_valid, m1_address_valid, m1_write_en;
@@ -21,6 +23,12 @@ module top_level (input clk, reset,
     wire s1_address, s1_data, s1_valid, s1_write_en;
     wire s2_address, s2_data, s2_valid, s2_write_en;
     wire s3_address, s3_data, s3_valid, s3_write_en;
+
+    // wires from controller to masters
+    wire m1_enable, m1_read_en;
+    wire m2_enable, m2_read_en;
+    wire [7:0] data_in1, data_in2;
+    wire [13:0] addr_in1, addr_in2;
 
     // registers for the clock divider
     reg [24:0] counter;
@@ -45,7 +53,8 @@ module top_level (input clk, reset,
                     .s2_address(s2_address), .s2_data(s2_data), 
                     .s2_valid(s2_valid), .s2_write_en(s2_write_en),
                     .s3_address(s3_address), .s3_data(s3_data), 
-                    .s3_valid(s3_valid), .s3_write_en(s3_write_en));
+                    .s3_valid(s3_valid), .s3_write_en(s3_write_en),
+                    .state(arbiter_state));
 
     // master 1
     master master1(.clock(clk),
@@ -61,7 +70,9 @@ module top_level (input clk, reset,
                    .data_tx(m1_data),
                    .valid(m1_address_valid),
                    .valid_s(m1_valid),
-                   .write_en_slave(m1_write_en));
+                   .write_en_slave(m1_write_en),
+                   .present(m1_state),
+                   .data_read(m1_data_read));
 
     // master 2
     master master2(.clock(clk),
@@ -77,7 +88,9 @@ module top_level (input clk, reset,
                     .data_tx(m2_data),
                     .valid(m2_address_valid),
                     .valid_s(m2_valid),
-                    .write_en_slave(m2_write_en));
+                    .write_en_slave(m2_write_en),
+                    .present(m2_state),
+                    .data_read(m2_data_read));
 
     // slave 1
     slave #(.MemN(2), .N(8), .ADN(12)) slave1(.validIn(s1_valid),
@@ -86,7 +99,8 @@ module top_level (input clk, reset,
                                                 .DataIn(s1_data),
                                                 .clk(clk),
                                                 .validOut(s1_valid_out),
-                                                .DataOut(s1_data_out));
+                                                .DataOut(s1_data_out),
+                                                .state_out(s1_state));
 
     // slave 2
     slave #(.MemN(2), .N(8), .ADN(12)) slave2(.validIn(s2_valid),
@@ -95,7 +109,8 @@ module top_level (input clk, reset,
                                                 .DataIn(s2_data),
                                                 .clk(clk),
                                                 .validOut(s2_valid_out),
-                                                .DataOut(s2_data_out));
+                                                .DataOut(s2_data_out),
+                                                .state_out(s2_state));
 
     // slave 3
     slave #(.MemN(2), .N(8), .ADN(12)) slave3(.validIn(s3_valid),
@@ -104,7 +119,19 @@ module top_level (input clk, reset,
                                                 .DataIn(s3_data),
                                                 .clk(clk),
                                                 .validOut(s3_valid_out),
-                                                .DataOut(s3_data_out));
+                                                .DataOut(s3_data_out),
+                                                .state_out(s3_state));
+
+    // controller
+    controller controller(  .clk(clk),.reset(reset),.start(start),
+                            .m1_request(m1_request),.m2_request(m2_request),
+                            .state_in(state_in),
+                            .m1_enable(m1_enable),.m2_enable(m2_enable),
+                            .m1_read_en(m1_read_en),.m2_read_en(m2_read_en),
+                            .data_in1(data_in1),.data_in2(data_in2),
+                            .addr_in1(addr_in1),.addr_in2(addr_in2),
+                            .state_out(controller_state));
+
 
     // Generating a clock with 1s period
 //     always @(posedge clk ) begin

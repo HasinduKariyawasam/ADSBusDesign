@@ -146,7 +146,6 @@ always @(posedge clock)
 	enable_posedge <= (enable_posedge << 1);
 	enable_posedge[0] <= enable;
 	clk <= ~clk;
-	data_read <= data_buffer;
 	end
 
 ////////////////////////////////////////////////////////	
@@ -319,10 +318,12 @@ read5:
 		begin
 		data_buffer <= (data_buffer << 1);
 		data_buffer[0] <= data_rx;
+		data_read <= data_buffer;
 		r_counter <= r_counter + 1;
 		end
 		
 	else
+		data_read <= data_buffer;
 		bus_req	<= 0;
 		
 	end

@@ -19,7 +19,7 @@ module top_level_testbench ();
         state_in = 5'd1; start = 1; #40; start = 0;
 
         #500;
-        state_in = 5'd5; start = 1; #40; start = 0;
+        state_in = 5'd2; start = 1; #40; start = 0;
 
         #500;
         state_in = 5'd8; start = 1; #40; start = 0;

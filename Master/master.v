@@ -324,7 +324,7 @@ read5:
 		
 	else
 		data_read <= data_buffer;
-		bus_req	<= 0;
+		// bus_req	<= 0;
 		
 	end
 

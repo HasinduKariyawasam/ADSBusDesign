@@ -40,9 +40,9 @@ char7 c1(controller_state[3:0],HEX0);
 assign LEDR[6] = controller_state[4];
 
 char7 c2(m1_state[3:0],HEX1);
-assign LEDR[7] = controller_state[4];
+assign LEDR[7] = m1_state[4];
 char7 c3(m2_state[3:0],HEX2);
-assign LEDR[8] = controller_state[4];
+assign LEDR[8] = m2_state[4];
 char7 c4(arbiter_state,HEX3);
 
 char7 c5(m1_data_read[3:0],HEX4);
@@ -51,9 +51,9 @@ char7 c6(m1_data_read[7:4],HEX5);
 char7 c7(m2_data_read[3:0],HEX6);
 char7 c8(m2_data_read[7:4],HEX7);
 
-assign  LEDR[1:0] = s1_state;
-assign  LEDR[3:2] = s2_state;
-assign  LEDR[5:4] = s3_state;
+assign  LEDG[2:0] = s1_state;
+assign  LEDG[5:3] = s2_state;
+assign  LEDR[2:0] = s3_state;
 
 assign LEDG[8] = clk;
 

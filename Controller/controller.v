@@ -38,186 +38,192 @@ module controller ( input clk, reset,start,
 
 
     always @(*) begin
-        case (state)
-            idle: begin
-                if (start == 1 && state_in == 5'd1)     
-                    next_state <= state1a;
-                else if (start == 1 && state_in ==5'd2)
-                    next_state <= state2a;
-                else if (start == 1 && state_in ==5'd3)
-                    next_state <= state3a;
-                else if (start == 1 && state_in ==5'd4)
-                    next_state <= state4a;
-                else if (start == 1 && state_in ==5'd5)
-                    next_state <= state5a;
-                else if (start == 1 && state_in ==5'd6)
-                    next_state <= state6a;
-                else if (start == 1 && state_in ==5'd7)
-                    next_state <= state7a;
-                else if (start == 1 && state_in ==5'd8)
-                    next_state <= state8a;
-                else if (start == 1 && state_in ==5'd9)
-                    next_state <= state9a;
-                else if (start == 1 && state_in ==5'd10)
-                    next_state <= state10a;
-                else 
-                    next_state <= idle;
-                
-            end
+        if (reset) begin
+            next_state <= idle;
+        end
 
-            //master 1 write to slave 1
-            state1a:begin
+        else begin
+
+            case (state)
+                idle: begin
+                    if (start == 1 && state_in == 5'd1)     
+                        next_state <= state1a;
+                    else if (start == 1 && state_in ==5'd2)
+                        next_state <= state2a;
+                    else if (start == 1 && state_in ==5'd3)
+                        next_state <= state3a;
+                    else if (start == 1 && state_in ==5'd4)
+                        next_state <= state4a;
+                    else if (start == 1 && state_in ==5'd5)
+                        next_state <= state5a;
+                    else if (start == 1 && state_in ==5'd6)
+                        next_state <= state6a;
+                    else if (start == 1 && state_in ==5'd7)
+                        next_state <= state7a;
+                    else if (start == 1 && state_in ==5'd8)
+                        next_state <= state8a;
+                    else if (start == 1 && state_in ==5'd9)
+                        next_state <= state9a;
+                    else if (start == 1 && state_in ==5'd10)
+                        next_state <= state10a;
+                    else 
+                        next_state <= idle;
+                    
+                end
+
+                //master 1 write to slave 1
+                state1a:begin
+                    if (counter <2'd2)
+                        next_state <= state1a;
+                    else
+                        next_state <=state1b;
+                    
+                end
+
+                state1b: begin
+                    if (m1_request == 0 && m2_request == 0)
+                        next_state <= idle;
+                    else
+                        next_state <=state1b;
+                    
+                end
+
+                //master 1 read from slave 1
+                state2a:begin
                 if (counter <2'd2)
-                    next_state <= state1a;
-                else
-                    next_state <=state1b;
-                
-            end
+                        next_state <= state2a;
+                    else
+                        next_state <=state2b;
+                end
 
-            state1b: begin
+                state2b: begin
                 if (m1_request == 0 && m2_request == 0)
-                    next_state <= idle;
-                else
-                    next_state <=state1b;
-                
-            end
+                        next_state <= idle;
+                    else
+                        next_state <=state2b;
+                end
 
-            //master 1 read from slave 1
-            state2a:begin
-               if (counter <2'd2)
-                    next_state <= state2a;
-                else
-                    next_state <=state2b;
-            end
+                //master 1 write to slave 2
+                state3a:begin
+                    if (counter <2'd2)
+                        next_state <= state3a;
+                    else
+                        next_state <=state3b;
+                end
 
-            state2b: begin
-               if (m1_request == 0 && m2_request == 0)
-                    next_state <= idle;
-                else
-                    next_state <=state2b;
-            end
+                state3b: begin
+                    if (m1_request == 0 && m2_request == 0)
+                        next_state <= idle;
+                    else
+                        next_state <=state3b;
+                end
 
-            //master 1 write to slave 2
-            state3a:begin
-                if (counter <2'd2)
-                    next_state <= state3a;
-                else
-                    next_state <=state3b;
-            end
+                //master 1 read from slave 2    
+                state4a:begin
+                    if (counter <2'd2)
+                        next_state <= state4a;
+                    else
+                        next_state <=state4b;
+                end
 
-            state3b: begin
-                if (m1_request == 0 && m2_request == 0)
-                    next_state <= idle;
-                else
-                    next_state <=state3b;
-            end
+                state4b: begin
+                    if (m1_request == 0 && m2_request == 0)
+                        next_state <= idle;
+                    else
+                        next_state <=state4b;
+                end
 
-            //master 1 read from slave 2    
-            state4a:begin
-                if (counter <2'd2)
-                    next_state <= state4a;
-                else
-                    next_state <=state4b;
-            end
+                //master 2 write to slave 3
+                state5a:begin
+                    if (counter <2'd2)
+                        next_state <= state5a;
+                    else
+                        next_state <=state5b;
+                end
 
-            state4b: begin
-                if (m1_request == 0 && m2_request == 0)
-                    next_state <= idle;
-                else
-                    next_state <=state4b;
-            end
+                state5b: begin
+                    if (m1_request == 0 && m2_request == 0)
+                        next_state <= idle;
+                    else
+                        next_state <=state5b;
+                end
 
-            //master 2 write to slave 3
-            state5a:begin
-                if (counter <2'd2)
-                    next_state <= state5a;
-                else
-                    next_state <=state5b;
-            end
+                //master 2 read from slave 3    
+                state6a:begin
+                    if (counter <2'd2)
+                        next_state <= state6a;
+                    else
+                        next_state <=state6b;
+                end
 
-            state5b: begin
-                if (m1_request == 0 && m2_request == 0)
-                    next_state <= idle;
-                else
-                    next_state <=state5b;
-            end
+                state6b: begin
+                    if (m1_request == 0 && m2_request == 0)
+                        next_state <= idle;
+                    else
+                        next_state <=state6b;
+                end
 
-            //master 2 read from slave 3    
-            state6a:begin
-                if (counter <2'd2)
-                    next_state <= state6a;
-                else
-                    next_state <=state6b;
-            end
+                //master 1,2 write at same time
+                state7a:begin
+                    if (counter <2'd2)
+                        next_state <= state7a;
+                    else
+                        next_state <=state7b;
+                end
 
-            state6b: begin
-                if (m1_request == 0 && m2_request == 0)
-                    next_state <= idle;
-                else
-                    next_state <=state6b;
-            end
+                state7b: begin
+                    if (m1_request == 0 && m2_request == 0)
+                        next_state <= idle;
+                    else
+                        next_state <=state7b;
+                end
 
-            //master 1,2 write at same time
-            state7a:begin
-                if (counter <2'd2)
-                    next_state <= state7a;
-                else
-                    next_state <=state7b;
-            end
+                //master 1,2 read at same time   
+                state8a:begin
+                    if (counter <2'd2)
+                        next_state <= state8a;
+                    else
+                        next_state <=state8b;
+                end
 
-            state7b: begin
-                if (m1_request == 0 && m2_request == 0)
-                    next_state <= idle;
-                else
-                    next_state <=state7b;
-            end
+                state8b: begin
+                    if (m1_request == 0 && m2_request == 0)
+                        next_state <= idle;
+                    else
+                        next_state <=state8b;
+                end
 
-            //master 1,2 read at same time   
-            state8a:begin
-                if (counter <2'd2)
-                    next_state <= state8a;
-                else
-                    next_state <=state8b;
-            end
+                //master 1,2 read at same time   
+                state9a:begin
+                    if (counter <2'd2)
+                        next_state <= state9a;
+                    else
+                        next_state <=state9b;
+                end
 
-            state8b: begin
-                if (m1_request == 0 && m2_request == 0)
-                    next_state <= idle;
-                else
-                    next_state <=state8b;
-            end
+                state9b: begin
+                    if (m1_request == 0 && m2_request == 0)
+                        next_state <= idle;
+                    else
+                        next_state <=state9b;
+                end
 
-            //master 1,2 read at same time   
-            state9a:begin
-                if (counter <2'd2)
-                    next_state <= state9a;
-                else
-                    next_state <=state9b;
-            end
+                //master 1,2 read at same time   
+                state10a:begin
+                    if (counter <2'd2)
+                        next_state <= state10a;
+                    else
+                        next_state <=state10b;
+                end
 
-            state9b: begin
-                if (m1_request == 0 && m2_request == 0)
-                    next_state <= idle;
-                else
-                    next_state <=state9b;
-            end
-
-            //master 1,2 read at same time   
-            state10a:begin
-                if (counter <2'd2)
-                    next_state <= state10a;
-                else
-                    next_state <=state10b;
-            end
-
-            state10b: begin
-                if (m1_request == 0 && m2_request == 0)
-                    next_state <= idle;
-                else
-                    next_state <=state10b;
-            end
-        endcase
-        
+                state10b: begin
+                    if (m1_request == 0 && m2_request == 0)
+                        next_state <= idle;
+                    else
+                        next_state <=state10b;
+                end
+            endcase
+        end
     end
 
     always @(posedge clk) begin

@@ -1,6 +1,7 @@
 module master(
 
 input clock,						// clock signal
+input reset,
 input enable,						// enable signal to get inputs from the user
 input read_en,						// signal to select data read(=1)/write(=0)
 input [7:0] data_in,				// data bits from switches
@@ -73,191 +74,200 @@ burst_rd6 = 5'd23;
 
 ///////////////////////////////////////////////////
 //next state decoder
-always @(*)
-case(present)
-
-idle:
-	begin
-	if (enable == 1)
-		next <= check_bus;
-	else
+always @(*) begin
+	if (reset) begin
 		next <= idle;
 	end
+	else begin
+		case(present)
 
-check_bus: next <= fetch;
+		idle:
+			begin
+			if (enable == 1)
+				next <= check_bus;
+			else
+				next <= idle;
+			end
 
-fetch:
-	begin
-	if ((read_en == 0) & (bus_ready == 1)) begin
-		if (burst_mode_in == 3'd0)
-			next <= write1;
-		else 
-			next <= burst_wr1;
+		check_bus: next <= fetch;
+
+		fetch:
+			begin
+			if ((read_en == 0) & (bus_ready == 1)) begin
+				if (burst_mode_in == 3'd0)
+					next <= write1;
+				else 
+					next <= burst_wr1;
+				end
+				
+			
+
+			else if ((read_en == 1) & (bus_ready == 1)) begin
+				if (burst_mode_in == 3'd0)
+					next <= read1;
+				else 
+					next <= burst_rd1;
+			end
+
+			else
+				next <= fetch;
+			end
+
+		write1:
+			next <= write2;
+
+
+		write2:
+			begin
+			if  (w_counter < 5'd2)
+				next <= write2;	
+			else if (w_counter >= 5'd2)
+				next <= write3;
+			end
+
+		write3:
+			next <= write4;
+
+		write4:
+			begin
+			if  (w_counter < 5'd14)
+				next <= write4;	
+			else if (w_counter >= 5'd14)
+				next <= idle;
+			end
+
+			
+		read1:
+			next <= read2;	
+			
+		read2:
+			begin
+			if  (r_counter < 5'd2)
+				next <= read2;
+			else
+				next <= read3;
+			end
+
+		read3:
+			next <= read4;
+
+		read4:
+			begin
+			if  (r_counter < 5'd14)
+				next <= read4;
+			else if (slave_valid == 1)
+				next <= read5;
+			else
+				next <= read4;
+			end
+
+		read5:
+			begin
+			if (r_counter < 5'd8)
+				next <= read5;
+			else
+				next <= idle;
+			end
+
+		burst_wr1:begin
+			next <= burst_wr2;
 		end
-		
-	
 
-	else if ((read_en == 1) & (bus_ready == 1)) begin
-		if (burst_mode_in == 3'd0)
-			next <= read1;
-		else 
-			next <= burst_rd1;
+		burst_wr2: begin
+			if  (w_counter < 5'd2)
+				next <= burst_wr2;
+			else 
+				next <= burst_wr3;
+		end
+
+		burst_wr3: next <= burst_wr4;
+
+		burst_wr4: begin
+			if  (w_counter < 5'd6)
+				next <= burst_wr4;
+
+			else if (w_counter < 5'd11)
+				next <= burst_wr4;
+
+			else if (w_counter < 5'd14)
+				next <= burst_wr4;
+
+			else if (w_counter == 5'd14)
+				next <= burst_wr5;
+		end
+
+		burst_wr5:begin
+			if (burst_counter < burst_size) begin
+				if (slave_ready == 1 ) 
+					next <= burst_wr6;
+
+				else
+					next <= burst_wr5;
+			end
+
+			else 
+				next <= idle;
+		end
+
+		burst_wr6: begin
+			if (w_counter < 5'd8)
+				next <= burst_wr6;
+
+			else
+				next <= burst_wr5; 
+		end
+
+		burst_rd1:
+			next <= burst_rd2;	
+			
+		burst_rd2:
+			begin
+			if  (r_counter < 5'd2)
+				next <= burst_rd2;
+			else
+				next <= burst_rd3;
+			end
+
+		burst_rd3:
+			next <= burst_rd4;
+
+		burst_rd4:
+			begin
+			if  (r_counter < 5'd14)
+				next <= burst_rd4;
+			else if (slave_valid == 1)
+				next <= burst_rd5;
+			else
+				next <= burst_rd4;
+			end
+
+		burst_rd5:
+			begin
+			if (r_counter < 5'd8)
+				next <= burst_rd5;
+			else
+				next <= burst_rd6;
+			end
+
+		burst_rd6: begin
+			if (burst_counter < burst_size) begin
+				if (slave_valid == 1)
+					next <= burst_rd5;
+				else	
+					next <= burst_rd6;
+			end
+
+			else
+				next <= idle;
+
+		end
+
+		endcase
 	end
-
-	else
-		next <= fetch;
-	end
-
-write1:
-	next <= write2;
-
-
-write2:
-	begin
-	if  (w_counter < 5'd2)
-		next <= write2;	
-	else if (w_counter >= 5'd2)
-		next <= write3;
-	end
-
-write3:
-	next <= write4;
-
-write4:
-	begin
-	if  (w_counter < 5'd14)
-		next <= write4;	
-	else if (w_counter >= 5'd14)
-		next <= idle;
-	end
-
-	
-read1:
-	next <= read2;	
-	
-read2:
-	begin
-	if  (r_counter < 5'd2)
-		next <= read2;
-	else
-		next <= read3;
-	end
-
-read3:
-	next <= read4;
-
-read4:
-	begin
-	if  (r_counter < 5'd14)
-		next <= read4;
-	else if (slave_valid == 1)
-		next <= read5;
-	else
-		next <= read4;
-	end
-
-read5:
-	begin
-	if (r_counter < 5'd8)
-		next <= read5;
-	else
-		next <= idle;
-	end
-
-burst_wr1:begin
-	next <= burst_wr2;
 end
 
-burst_wr2: begin
-	if  (w_counter < 5'd2)
-		next <= burst_wr2;
-	else 
-		next <= burst_wr3;
-end
 
-burst_wr3: next <= burst_wr4;
 
-burst_wr4: begin
-	if  (w_counter < 5'd6)
-		next <= burst_wr4;
-
-	else if (w_counter < 5'd11)
-		next <= burst_wr4;
-
-	else if (w_counter < 5'd14)
-		next <= burst_wr4;
-
-	else if (w_counter == 5'd14)
-		next <= burst_wr5;
-end
-
-burst_wr5:begin
-	if (burst_counter < burst_size) begin
-		if (slave_ready == 1 ) 
-			next <= burst_wr6;
-
-		else
-			next <= burst_wr5;
-	end
-
-	else 
-		next <= idle;
-end
-
-burst_wr6: begin
-	if (w_counter < 5'd8)
-		next <= burst_wr6;
-
-	else
-		next <= burst_wr5; 
-end
-
-burst_rd1:
-	next <= burst_rd2;	
-	
-burst_rd2:
-	begin
-	if  (r_counter < 5'd2)
-		next <= burst_rd2;
-	else
-		next <= burst_rd3;
-	end
-
-burst_rd3:
-	next <= burst_rd4;
-
-burst_rd4:
-	begin
-	if  (r_counter < 5'd14)
-		next <= burst_rd4;
-	else if (slave_valid == 1)
-		next <= burst_rd5;
-	else
-		next <= burst_rd4;
-	end
-
-burst_rd5:
-	begin
-	if (r_counter < 5'd8)
-		next <= burst_rd5;
-	else
-		next <= burst_rd6;
-	end
-
-burst_rd6: begin
-	if (burst_counter < burst_size) begin
-		if (slave_valid == 1)
-			next <= burst_rd5;
-		else	
-			next <= burst_rd6;
-	end
-
-	else
-		next <= idle;
-
-end
-
-endcase
 	
 
 ///////////////////////////////////////////////////////

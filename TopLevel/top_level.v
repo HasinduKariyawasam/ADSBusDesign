@@ -63,6 +63,7 @@ module top_level (input clk, reset, start,
 
     // master 1
     master master1(.clock(clk),
+                    .reset(reset),
                    .enable(m1_enable),
                    .read_en(m1_read_en),
                    .data_in(data_in1),
@@ -84,6 +85,7 @@ module top_level (input clk, reset, start,
 
     // master 2
     master master2(.clock(clk),
+                    .reset(reset),
                     .enable(m2_enable),
                     .read_en(m2_read_en),
                     .data_in(data_in2),

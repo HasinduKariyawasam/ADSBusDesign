@@ -466,7 +466,7 @@ read5:
 		begin
 		data_buffer <= (data_buffer << 1);
 		data_buffer[0] <= data_rx;
-		data_read <= data_buffer;
+		// data_read <= data_buffer;
 		r_counter <= r_counter + 1;
 		end
 		
@@ -663,7 +663,7 @@ burst_rd5:
 		begin
 		data_buffer <= (data_buffer << 1);
 		data_buffer[0] <= data_rx;
-		data_read <= data_buffer;
+		// data_read <= data_buffer;
 		r_counter <= r_counter + 1;
 	end
 		

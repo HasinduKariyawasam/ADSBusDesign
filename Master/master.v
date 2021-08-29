@@ -596,7 +596,7 @@ end
 burst_rd1:begin
 	valid_s <= 1;
 	valid <= 0;
-	next <= burst_rd2;
+	// next <= burst_rd2;
 end
 
 burst_rd2:

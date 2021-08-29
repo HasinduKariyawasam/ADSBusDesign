@@ -9,9 +9,10 @@ reg enable;						// enable signal to get inputs from the user
 reg read_en;							// signal to select data read(=1)/write(=0)
 reg [7:0] data_in;				// data bits from switches
 reg [13:0] addr_in;			// address bits fron switches
+reg [2:0] burst_mode_in;
 
 reg data_rx;						//received data from slave
-//reg slave_ready;				// signal indicating the availability of the slave ??
+reg slave_ready;				// signal indicating the availability of the slave ??
 reg bus_ready;					// signal indicating the availability of the bus
 reg slave_valid;
 
@@ -23,7 +24,7 @@ wire data_tx;				// output data
 wire valid;					// signal that indicates validity of the data from master
 wire valid_s;
 wire master_busy;	
-
+wire burst_mode;
 
 
 master master(
@@ -31,10 +32,11 @@ master master(
 	.enable(enable),						
 	.read_en(read_en),							
 	.data_in(data_in),				
-	.addr_in(addr_in),		
+	.addr_in(addr_in),	
+	.burst_mode_in(burst_mode_in),	
 
 	.data_rx(data_rx),						
-//	.slave_ready(slave_ready),
+	.slave_ready(slave_ready),
 	.bus_ready(bus_ready),					// signal indicating the availability of the bus
 	.slave_valid(slave_valid),
 	
@@ -44,7 +46,8 @@ master master(
 	.data_tx(data_tx),				
 	.valid(valid),
 	.valid_s(valid_s),
-	.master_busy(master_busy)			
+	.master_busy(master_busy),
+	.burst_mode(burst_mode)			
 
  );
 
@@ -52,7 +55,7 @@ initial begin
 	clock = 1'b0;
 	enable = 0;
 	bus_ready = 0;
-//	slave_ready = 0;
+	slave_ready = 0;
 	slave_valid = 0;
 	data_rx = 0;
 	forever begin
@@ -66,7 +69,8 @@ initial begin
 	#100
 	enable = 1;
 	read_en = 0;
-//	slave_ready = 0;
+	slave_ready = 0;
+	burst_mode_in = 3'd0;
 	data_in = 8'b11010101;
 	addr_in = 14'b10110010110010;
 	
@@ -74,58 +78,70 @@ initial begin
 	enable = 0;
 	bus_ready = 1;
 	
-	#100
-//	slave_ready = 1;
-	
-	
-	#1000
-	enable = 0;
-	bus_ready = 0;
-//	slave_ready = 0;
-
-	#100
+	#500
 	enable = 1;
-	read_en = 1;
-//	slave_ready = 0;
-	data_in = 8'd0;
-	addr_in = 14'b10101010110010;
+	read_en = 0;
+	slave_ready = 0;
+	burst_mode_in = 3'd1;
+	data_in = 8'b11010101;
+	addr_in = 14'b10110010110010;
 	
 	#100
 	enable = 0;
 	bus_ready = 1;
-//	slave_ready = 1;
+
+	#500
+	slave_ready = 1;
 	
-	#1000
-	slave_valid = 1;
 	
-	#20
-	data_rx = 1;
+// 	#1000
+// 	enable = 0;
+// 	bus_ready = 0;
+// 	slave_ready = 0;
+
+// 	#100
+// 	enable = 1;
+// 	read_en = 1;
+// //	slave_ready = 0;
+// 	data_in = 8'd0;
+// 	addr_in = 14'b10101010110010;
 	
-	#20
-	data_rx = 0;
+// 	#100
+// 	enable = 0;
+// 	bus_ready = 1;
+// //	slave_ready = 1;
 	
-	#20
-	data_rx = 1;
+// 	#1000
+// 	slave_valid = 1;
 	
-	#20
-	data_rx = 1;
+// 	#20
+// 	data_rx = 1;
 	
-	#20
-	data_rx = 0;
+// 	#20
+// 	data_rx = 0;
 	
-	#20
-	data_rx = 1;
+// 	#20
+// 	data_rx = 1;
 	
-	#20
-	data_rx = 0;
+// 	#20
+// 	data_rx = 1;
 	
-	#20
-	data_rx = 1;
+// 	#20
+// 	data_rx = 0;
 	
-	#1000
-	enable = 0;
-	bus_ready = 0;
-	slave_valid = 0;
+// 	#20
+// 	data_rx = 1;
+	
+// 	#20
+// 	data_rx = 0;
+	
+// 	#20
+// 	data_rx = 1;
+	
+// 	#1000
+// 	enable = 0;
+// 	bus_ready = 0;
+// 	slave_valid = 0;
 
 	
 	

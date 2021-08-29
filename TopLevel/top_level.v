@@ -1,9 +1,9 @@
 module top_level (input clk, reset, start,
                   input [4:0] state_in,
                   output [4:0] controller_state,
-                  output [3:0] m1_state, m2_state,
+                  output [4:0] m1_state, m2_state,
                   output [7:0] m1_data_read, m2_data_read,
-                  output [1:0] s1_state,s2_state,s3_state,
+                  output [2:0] s1_state,s2_state,s3_state,
                   output [2:0] arbiter_state);
 
     // wires from master to arbiter

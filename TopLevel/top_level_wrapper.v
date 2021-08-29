@@ -13,9 +13,9 @@ wire clk, reset, start;
 wire [4:0] state_in;
 
 wire [4:0] controller_state;
-wire [3:0] m1_state, m2_state;
+wire [4:0] m1_state, m2_state;
 wire [7:0] m1_data_read, m2_data_read;
-wire [1:0] s1_state,s2_state,s3_state;
+wire [2:0] s1_state,s2_state,s3_state;
 wire [2:0] arbiter_state;
 
 wire inclk, ena;
@@ -37,8 +37,12 @@ assign ena   = SW[16];
 assign state_in = SW[4:0];
 
 char7 c1(controller_state[3:0],HEX0);
+assign LEDR[6] = controller_state[4];
+
 char7 c2(m1_state[3:0],HEX1);
+assign LEDR[7] = controller_state[4];
 char7 c3(m2_state[3:0],HEX2);
+assign LEDR[8] = controller_state[4];
 char7 c4(arbiter_state,HEX3);
 
 char7 c5(m1_data_read[3:0],HEX4);

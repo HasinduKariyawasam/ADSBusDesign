@@ -16,6 +16,8 @@ module slave_tb();
     reg         wren=0;
     reg         Address=0;
     reg         DataIn=0;
+    reg         reset=0;
+    reg         BurstEn=0;
     wire         ready;
     wire         validOut;
     wire         DataOut;
@@ -30,7 +32,7 @@ module slave_tb();
       #(CLK_PERIOD*3);
 
       @(posedge clk);
-      validIn = 1;wren = 1;
+      validIn = 1;wren = 1;BurstEn=1;
 
       @(posedge clk);
       Address = 0;
@@ -58,18 +60,122 @@ module slave_tb();
       @(posedge clk);
       DataIn = 1;
       Address = 0;
+      BurstEn = 1;
       @(posedge clk);
       DataIn = 0;
       Address = 0;
+      BurstEn = 0;
       @(posedge clk);
       DataIn = 1;
       Address = 1;
+      BurstEn = 1;
 
       @(posedge clk);
       Address = 0;
       DataIn = 0;
       validIn = 0;
       wren = 0;
+
+
+      $stop;
+
+      @(posedge ready);
+      DataIn = 0;
+      validIn = 0;
+      wren = 0;
+
+      repeat(127) begin
+        @(posedge clk);
+        validIn = 1;
+        repeat(8) begin
+          @(posedge clk);
+          DataIn = $random;
+        end
+        @(posedge clk);
+        validIn = 0;
+          
+        @(posedge ready);
+        DataIn = 0;
+        validIn = 0;
+      end
+        
+
+
+      #400;
+
+
+      @(posedge clk);
+      validIn = 1;wren = 0;BurstEn=1;
+
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 1;
+      @(posedge clk);
+      Address = 0;
+      @(posedge clk);
+      Address = 0;
+      // DataIn = 1;
+      @(posedge clk);
+      Address = 1;
+      // DataIn = 1;
+      @(posedge clk);
+      // DataIn = 1;
+      Address = 1;
+      @(posedge clk);
+      // DataIn = 0;
+      Address = 0;
+      @(posedge clk);
+      // DataIn = 0;
+      Address = 1;
+      @(posedge clk);
+      // DataIn = 1;
+      Address = 0;
+      BurstEn = 1;
+      @(posedge clk);
+      // DataIn = 0;
+      Address = 0;
+      BurstEn = 0;
+      @(posedge clk);
+      // DataIn = 1;
+      Address = 1;
+      BurstEn = 1;
+
+      @(posedge clk);
+      Address = 0;
+      DataIn = 0;
+      validIn = 0;
+      wren = 0;
+      $stop;
+
+
+
+      @(posedge validOut);
+      DataIn = 0;
+      validIn = 0;
+      wren = 0;
+
+      repeat(127) begin
+        // @(posedge clk);
+        // validIn = 1;
+        repeat(8) begin
+          @(posedge clk);
+          // DataIn = $random;
+        end
+        @(posedge clk);
+        validIn = 0;
+          
+        @(posedge validOut);
+        DataIn = 0;
+        validIn = 0;
+      end
+
+      $stop;
+
+
+
 
 
       @(posedge ready);

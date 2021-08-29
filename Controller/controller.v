@@ -344,7 +344,7 @@ module controller ( input clk, reset,start,
                 counter <= counter + 2'd1;
                 m1_enable <= 1; m2_enable <= 0;
                 m1_read_en <= 0; m2_read_en <= 0;
-                m1_burst_mode <= 3'd1;m2_burst_mode<=0;
+                m1_burst_mode <= 3'd5;m2_burst_mode<=0;
                 data_in1 <= 8'd101; data_in2 <= 8'd0;
                 addr_in1 <= 14'd1001; addr_in2 <= 14'd0;
             end
@@ -358,7 +358,7 @@ module controller ( input clk, reset,start,
                 counter <= counter + 2'd1;
                 m1_enable <= 0; m2_enable <= 1;
                 m1_read_en <= 0; m2_read_en <= 1;
-                m1_burst_mode <= 3'd0;m2_burst_mode<=3'd1;
+                m1_burst_mode <= 3'd0;m2_burst_mode<=3'd5;
                 data_in1 <= 8'd0; data_in2 <= 8'd0;
                 addr_in1 <= 14'd0; addr_in2 <= 14'd1001;
             end

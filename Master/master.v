@@ -309,6 +309,7 @@ fetch:
 		data_buffer <= data_in;
 		data_buffer_inc <= data_in;
 		addr_buffer <= addr_in;
+		burst_mode_buffer <= burst_mode_in;
 		w_counter <= 5'd0;
 		r_counter <= 5'd0;
 		if (bus_ready)	valid <= 0;
@@ -595,6 +596,7 @@ end
 
 burst_rd1:begin
 	valid_s <= 1;
+	burst_mode <= 1;
 	valid <= 0;
 	// next <= burst_rd2;
 end

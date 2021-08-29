@@ -223,7 +223,7 @@ module slave #(
                     BurstLenReg     <= {BurstLenReg[BN-2:0],BurstEn};
                     counterN        <= counterN + 1'b1;
                     counterADN      <= counterADN + 1'b1;
-                    ready           <= 1 ;
+                    ready           <= 0 ;
                 end     
                 else begin
                     if(counterN == N) begin
@@ -244,18 +244,18 @@ module slave #(
             /////////////////////////////////////////////////////////
             BWR: begin
 
-                if (counterN < 2) begin
+                if (counterN < 3) begin
                     counterN     <= counterN + 1'b1;
                     WriteDataReg <= 0;
                     ready        <= 1;
                 end
                 else begin
-                    if((counterN < N+2) && validIn) begin
-                        ready <= 1;
+                    if((counterN < N+3) && validIn) begin
+                        ready <= 0;
                         WriteDataReg <= {WriteDataReg[N-2:0],DataIn};
                         counterN <= counterN + 1'b1; 
                     end
-                    else if(counterN == N+2)begin
+                    else if(counterN == N+3)begin
                         counterBurst <= counterBurst + 1'b1;
                         BRAMmem[AddressReg] <= WriteDataReg;
                         AddressReg <= AddressReg + 1'b1;

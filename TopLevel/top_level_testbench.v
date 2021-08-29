@@ -23,14 +23,13 @@ module top_level_testbench ();
         
 
         #800;
-        $stop;
 
         state_in = 5'd9; start = 1; #40; start = 0;
 
-        #4000;
+        #64000;
         state_in = 5'd10; start = 1; #40; start = 0;
 
-        #4000;
+        #64000;
 
         // m1_enable = 0; m1_read_en = 0;
         // m2_enable = 0; m2_read_en = 0;

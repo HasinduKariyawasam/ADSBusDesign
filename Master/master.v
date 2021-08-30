@@ -7,7 +7,7 @@ input [7:0] data_in,				// data bits from switches
 input [13:0] addr_in,			// address bits fron switches
 
 input data_rx,						//received data from slave
-//input slave_ready,				// signal indicating the availability of the slave
+input slave_ready,				// signal indicating the availability of the slave
 input bus_ready,					// signal indicating the availability of the bus
 input slave_valid,
 
@@ -90,7 +90,12 @@ write2:
 		next <= write3;
 	end
 
-write3:
+write3: begin
+	if (bus_ready == 1)
+		next <= write4;
+	else
+		next <=write3;
+end
 	next <= write4;
 
 write4:
@@ -113,8 +118,13 @@ read2:
 		next <= read3;
 	end
 
-read3:
-	next <= read4;
+read3:begin
+	if (bus_ready == 1)
+		next <= read4;
+	else
+		next <= read3;
+	end
+	
 
 read4:
 	begin
@@ -225,10 +235,17 @@ write2:
 		end
 	end
 
-write3:
-	begin
+write3:begin
+		begin
 		valid_s <= 1;
-	end
+	end	
+	// if (bus_ready == 1) begin
+	// 	valid_s <= 1;
+	// 	valid <= 1;				//check this with Artbiter/////
+	// end
+	// else
+	// 	valid <= 0;
+	// end
 
 write4:
 	begin
@@ -290,6 +307,14 @@ read3:
 	begin
 	valid_s <= 1;
 	end	
+	// begin
+	// if (bus_ready == 1) begin
+	// 	valid_s <= 1;
+	// 	valid <= 1;				//check this with Artbiter/////
+	// end
+	// else
+	// 	valid <= 0;
+	// end
 	
 read4:
 	begin

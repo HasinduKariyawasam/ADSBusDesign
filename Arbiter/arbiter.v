@@ -117,7 +117,8 @@ module arbiter(input clk, reset,
                         prev_state <= busy_m1;
                     end  
                     else if (m1_address_valid) begin
-                        state <= msb1;
+                        // state <= msb1;
+                        state <= wait_address;
                     end 
                     else    state <= busy_m1;
                 end
@@ -131,17 +132,18 @@ module arbiter(input clk, reset,
                         prev_state <= busy_m2;
                     end     
                     else if (m2_address_valid) begin
-                        state <= msb1;
+                        // state <= msb1;
+                        state <= wait_address;
                     end   
                     else    state <= busy_m2;
                 end
 
                 switch_master: begin
-                    if (connected_master == 2'd1 && m2_address_valid) begin
+                    if (connected_master == 2'd1 && m2_request) begin
                         connected_master <= 2'd2;
                         state <= wait_address;
                     end
-                    else if (connected_master == 2'd2 && m1_address_valid) begin
+                    else if (connected_master == 2'd2 && m1_request) begin
                         connected_master <= 2'd1;
                         state <= wait_address;
                     end

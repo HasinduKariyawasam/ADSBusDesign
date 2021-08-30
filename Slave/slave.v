@@ -1,7 +1,7 @@
 module slave #(
     parameter MemN = 2,   // Memory Block Size
     parameter N = 8,      // Memory Block Width
-    parameter DelayN = 20,
+    parameter DelayN = 20, // Read delay in clock cycles
     parameter ADN = 12    // Address Length
 ) (
     // Input Ports

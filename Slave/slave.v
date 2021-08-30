@@ -1,20 +1,21 @@
 module slave #(
     parameter MemN = 2,   // Memory Block Size
     parameter N = 8,      // Memory Block Width
+    parameter DelayN = 20,
     parameter ADN = 12    // Address Length
 ) (
     // Input Ports
 	input     validIn,wren,
 	input     Address,DataIn,
-	input     clk,
+	input     clk,BusAvailable,
 	
 
 	// Output Ports
-    output [1:0] state_out,
-    output [1:0] next_state_out,
-    output [ADN-1:0]   AddressReg_out,
-    output [N-1:0]     WriteDataReg_out,
-    output [N-1:0]     ReadDataReg_out,
+    // output [2:0] state_out,
+    // output [2:0] next_state_out,
+    // output [ADN-1:0]   AddressReg_out,
+    // output [N-1:0]     WriteDataReg_out,
+    // output [N-1:0]     ReadDataReg_out,
     // output [N_BITS:0]  counterN_out,
     // output [ADN_BITS:0]counterADN_out,
     output reg  ready=0,validOut=0,
@@ -25,22 +26,24 @@ module slave #(
 
     localparam ADN_BITS = $clog2(ADN);
     localparam N_BITS   = $clog2(N);
-    localparam IDLE     = 2'd0;             //IDLE STATE
-    localparam AD       = 2'd1;             //Address Decode State for Read Operations
-    localparam ADWR      = 2'd2;            //Address Decode and Write Decode State for Write Operations
-    localparam RD       = 2'd3;             //Read State for Read Operations
+    localparam IDLE     = 3'd0;             //IDLE STATE
+    localparam AD       = 3'd1;             //Address Decode State for Read Operations
+    localparam ADWR     = 3'd2;            //Address Decode and Write Decode State for Write Operations
+    localparam RDWait   = 3'd3;             //Read wait State for Read Operations
+    localparam RD       = 3'd4;             //Read State for read operations
 
 
 
 
 
-    reg [1:0]       state           = IDLE;
-    reg [1:0]       next_state;
+    reg [2:0]       state           = IDLE;
+    reg [2:0]       next_state;
     reg [ADN-1:0]   AddressReg      = 0;
     reg [N-1:0]     WriteDataReg    = 0;
     reg [N-1:0]     ReadDataReg     = 0;
     reg [N_BITS:0]  counterN        = 0;
     reg [ADN_BITS:0]counterADN      = 0;
+    reg [10:0]      counterDelay    = 0;
 
 
     assign state_out = state;
@@ -61,12 +64,16 @@ module slave #(
                 else                                    next_state <= IDLE;                
             end
             AD: begin
-                if ((counterADN == ADN) && ~wren)       next_state <= RD;  
+                if ((counterADN == ADN) && ~wren)       next_state <= RDWait;  
                 else                                    next_state <= AD;
             end
             ADWR: begin
                 if(counterN == N)                       next_state <= IDLE;
                 else                                    next_state <= ADWR;
+            end
+            RDWait: begin
+                if((counterDelay < DelayN) || ~BusAvailable) next_state <= RDWait;
+                else                                         next_state <= RD;
             end
             RD: begin
                 if(counterN == N+1)                     next_state <= IDLE;
@@ -87,10 +94,11 @@ module slave #(
         case(state)
             ///////////////////////////////////////////////////////
             IDLE: begin
-                ready       <= 1;
-                counterADN  <= 0;
-                counterN    <= 0;
-                AddressReg  <= 0;
+                ready        <= 1;
+                counterADN   <= 0;
+                counterN     <= 0;
+                counterDelay <= 0;
+                AddressReg   <= 0;
                 WriteDataReg <= 0;
                 ReadDataReg  <= 0;
                 DataOut      <= 0;
@@ -106,7 +114,7 @@ module slave #(
                 end    
                 else begin
                     AddressReg <= AddressReg;
-                    ready      <= 1 ;
+                    ready      <= 0 ;
                 end   
             end
             ///////////////////////////////////////////////////////
@@ -136,6 +144,20 @@ module slave #(
                     end    
                 end 
             end
+
+            ///////////////////////////////////////////////////////
+            RDWait: begin
+                
+                if((counterDelay < DelayN)) begin
+                    counterDelay <= counterDelay + 1'b1;
+                    ready        <= 0 ;
+                end    
+                else begin
+                    ready      <= 1 ;
+                end   
+            end
+
+
             /////////////////////////////////////////////////////////
             RD: begin
 

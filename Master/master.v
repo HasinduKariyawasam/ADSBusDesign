@@ -29,7 +29,9 @@ output reg [15:0]clk_counter = 16'd0
  );
  
 reg [7:0] data_buffer = 8'd0;		// buffer to keep input data
-reg [13:0] addr_buffer = 14'd0;	// buffer to keep input address
+reg [13:0] addr_buffer1 = 14'd0;	// buffer to keep input address
+reg [13:0] addr_buffer2 = 14'd0;
+reg [4:0] wait_counter = 5'd0;
 //reg [4:0] w_counter = 5'd0;		// counter to count number of transmitted bits
 //reg [4:0] r_counter = 5'd0;		// counter to count clock cycles in read operation
 reg [1:0] enable_posedge = 2'd0;	// register to identify positive edge of the enable signal
@@ -86,23 +88,29 @@ write2:
 	begin
 	if  (w_counter < 5'd2)
 		next <= write2;	
-	else if (w_counter >= 5'd2)
+	else 
 		next <= write3;
 	end
 
-write3: begin
-	if (bus_ready == 1)
-		next <= write4;
-	else
-		next <=write3;
-end
-	next <= write4;
+write3: 
+	begin
+	if (bus_ready == 1 && wait_counter == 5'd0) begin
+		next <= write4;				
+	end
+	else if (bus_ready == 1 && wait_counter != 5'd0) begin
+		next <= write2;
+	end
+	else begin
+		next <= write3;
+	end
+
+	end
 
 write4:
 	begin
 	if  (w_counter < 5'd14)
 		next <= write4;	
-	else if (w_counter >= 5'd14)
+	else 
 		next <= idle;
 	end
 
@@ -118,11 +126,18 @@ read2:
 		next <= read3;
 	end
 
-read3:begin
-	if (bus_ready == 1)
-		next <= read4;
-	else
+read3:
+	begin
+	if (bus_ready == 1 && wait_counter == 5'd0) begin
+		next <= read4;				
+	end
+	else if (bus_ready == 1 && wait_counter != 5'd0) begin
+		next <= read2;
+	end
+	else begin
 		next <= read3;
+	end
+
 	end
 	
 
@@ -165,11 +180,12 @@ case(present)
 idle: 
 	begin
 	data_buffer <= 8'd0;	
-	addr_buffer <= 14'd0;
+	addr_buffer1 <= 14'd0;
 	// bus_req	<= 0;
 	master_busy <= 0;
 	w_counter <= 5'd0;
 	r_counter <= 5'd0;
+	wait_counter = 5'd0;
 	addr_tx <= 0;
 	data_tx <= 0;
 	// valid <= 0;
@@ -191,7 +207,7 @@ fetch:
 	bus_req <= 1;
 	master_busy <= 1;
 	data_buffer <= data_in;
-	addr_buffer <= addr_in;
+	addr_buffer1 <= addr_in;
 	w_counter <= 5'd0;
 	r_counter <= 5'd0;
 	if (bus_ready)	valid <= 0;
@@ -204,48 +220,44 @@ write1:
 	begin
 	valid <= 0;
 	valid_s <= 1;
+	addr_buffer2 <= addr_buffer1;
 	w_counter <= 5'd0;
 	end
 
 
 write2:
 	begin
-	//sending first 6 bits of the address
-	if  (w_counter < 5'd6)
-		begin
+	//sending first 2 bits of the address
 		w_counter <= w_counter + 5'd1;
 		valid <= 0;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
-		end
-	
-	//sending remaining bits of the address and data
-	else if (w_counter < 5'd14)
-		begin
-		w_counter <= w_counter + 5'd1;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
-		data_tx <= data_buffer[7];
-		data_buffer <= (data_buffer << 1);
-		end
-			
-	else if (w_counter == 5'd14)
-		begin
-		valid_s <= 0;
-		end
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 	end
 
-write3:begin
-		begin
-		valid_s <= 1;
-	end	
-	// if (bus_ready == 1) begin
+write3:
+	// 	begin
 	// 	valid_s <= 1;
-	// 	valid <= 1;				//check this with Artbiter/////
-	// end
-	// else
-	// 	valid <= 0;
-	// end
+	// end	
+	begin
+	if (bus_ready == 1 && wait_counter == 5'd0) begin
+		valid_s <= 1;
+			
+	end
+	else if (bus_ready == 1 && wait_counter != 5'd0) begin
+		valid <= 0;
+		valid_s <= 1;
+		addr_buffer1 <= addr_buffer2;
+		w_counter <= 5'd0;
+		wait_counter <= 5'd0;
+	end
+	else begin
+		valid <= 0;
+		valid_s <= 1;
+		w_counter <= 5'd0;
+		wait_counter <= wait_counter + 5'd1;
+	end
+
+	end
 
 write4:
 	begin
@@ -254,16 +266,16 @@ write4:
 		begin
 		w_counter <= w_counter + 5'd1;
 		valid <= 0;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		end
 	
 	//sending remaining bits of the address and data
 	else if (w_counter < 5'd14)
 		begin
 		w_counter <= w_counter + 5'd1;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		data_tx <= data_buffer[7];
 		data_buffer <= (data_buffer << 1);
 		end
@@ -281,6 +293,8 @@ read1:
 	begin
 	valid_s <= 1;
 	valid <= 0;
+	addr_buffer2 <= addr_buffer1;
+	w_counter <= 5'd0;
 	end	
 	
 read2:
@@ -288,8 +302,8 @@ read2:
 	if  (r_counter < 5'd14)	//sending the read address
 		begin
 		valid <= 0;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		r_counter <= r_counter + 1;
 		end
 	else if (slave_valid == 1) //wait until slave_valid signal
@@ -305,24 +319,32 @@ read2:
 
 read3:
 	begin
-	valid_s <= 1;
-	end	
-	// begin
-	// if (bus_ready == 1) begin
-	// 	valid_s <= 1;
-	// 	valid <= 1;				//check this with Artbiter/////
-	// end
-	// else
-	// 	valid <= 0;
-	// end
+	if (bus_ready == 1 && wait_counter == 5'd0) begin
+		valid_s <= 1;				
+	end
+	else if (bus_ready == 1 && wait_counter != 5'd0) begin
+		valid <= 0;
+		valid_s <= 1;
+		addr_buffer1 <= addr_buffer2;
+		r_counter <= 5'd0;
+		wait_counter <= 5'd0;
+	end
+	else begin
+		valid <= 0;
+		valid_s <= 1;
+		r_counter <= 5'd0;
+		wait_counter <= wait_counter + 5'd1;
+	end
+
+	end
 	
 read4:
 	begin
 	if  (r_counter < 5'd14)	//sending the read address
 		begin
 		valid <= 0;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		r_counter <= r_counter + 1;
 		end
 	else if (slave_valid == 1) //wait until slave_valid signal

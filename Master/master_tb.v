@@ -62,7 +62,7 @@ initial begin
 end
 
 initial begin
-	
+	enable = 0; read_en = 0; bus_ready = 0; 
 	#100
 	enable = 1;
 	read_en = 0;
@@ -77,55 +77,107 @@ initial begin
 	#100
 //	slave_ready = 1;
 	
-	
-	#1000
+///////////////////////////////////////////	
+	#500
 	enable = 0;
 	bus_ready = 0;
 //	slave_ready = 0;
 
 	#100
 	enable = 1;
-	read_en = 1;
+	read_en = 0;
+
 //	slave_ready = 0;
-	data_in = 8'd0;
-	addr_in = 14'b10101010110010;
+	data_in = 8'b11010101;
+	addr_in = 14'b10110010110010;
 	
 	#100
 	enable = 0;
 	bus_ready = 1;
-//	slave_ready = 1;
 	
-	#1000
-	slave_valid = 1;
+	#40
+	bus_ready = 0;
 	
-	#20
-	data_rx = 1;
+	#120
+	bus_ready = 1;
+//////////////////////////////////////////////////
+	#500
+	enable = 0;
+	bus_ready = 0;
+//	slave_ready = 0;
+
+	#100
+	enable = 1;
+	read_en = 0;
 	
-	#20
-	data_rx = 0;
+//	slave_ready = 0;
+	data_in = 8'b11010101;
+	addr_in = 14'b10110010110010;
 	
-	#20
-	data_rx = 1;
+	#200
+	bus_ready = 1;
+	#90
+	bus_ready = 0;
+	enable = 0;
 	
-	#20
-	data_rx = 1;
-	
-	#20
-	data_rx = 0;
-	
-	#20
-	data_rx = 1;
-	
-	#20
-	data_rx = 0;
-	
-	#20
-	data_rx = 1;
-	
+	#400
+	bus_ready = 1;
+
 	#1000
 	enable = 0;
 	bus_ready = 0;
-	slave_valid = 0;
+//	slave_ready = 0;
+
+	#10
+	$stop;
+
+
+
+
+
+// 	#100
+// 	enable = 1;
+// 	read_en = 1;
+// //	slave_ready = 0;
+// 	data_in = 8'd0;
+// 	addr_in = 14'b10101010110010;
+	
+// 	#100
+// 	enable = 0;
+// 	bus_ready = 1;
+// //	slave_ready = 1;
+	
+// 	#1000
+// 	slave_valid = 1;
+	
+// 	#20
+// 	data_rx = 1;
+	
+// 	#20
+// 	data_rx = 0;
+	
+// 	#20
+// 	data_rx = 1;
+	
+// 	#20
+// 	data_rx = 1;
+	
+// 	#20
+// 	data_rx = 0;
+	
+// 	#20
+// 	data_rx = 1;
+	
+// 	#20
+// 	data_rx = 0;
+	
+// 	#20
+// 	data_rx = 1;
+	
+// 	#1000
+// 	enable = 0;
+// 	bus_ready = 0;
+// 	slave_valid = 0;
 
 	
 	

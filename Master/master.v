@@ -31,7 +31,7 @@ output reg [15:0]clk_counter = 16'd0
 reg [7:0] data_buffer = 8'd0;		// buffer to keep input data
 reg [13:0] addr_buffer1 = 14'd0;	// buffer to keep input address
 reg [13:0] addr_buffer2 = 14'd0;
-reg [4:0] wait_counter = 5'd0;
+reg [9:0] wait_counter = 10'd0;
 //reg [4:0] w_counter = 5'd0;		// counter to count number of transmitted bits
 //reg [4:0] r_counter = 5'd0;		// counter to count clock cycles in read operation
 reg [1:0] enable_posedge = 2'd0;	// register to identify positive edge of the enable signal
@@ -94,10 +94,10 @@ write2:
 
 write3: 
 	begin
-	if (bus_ready == 1 && wait_counter == 5'd0) begin
+	if (bus_ready == 1 && wait_counter == 10'd0) begin
 		next <= write4;				
 	end
-	else if (bus_ready == 1 && wait_counter != 5'd0) begin
+	else if (bus_ready == 1 && wait_counter != 10'd0) begin
 		next <= write2;
 	end
 	else begin
@@ -128,10 +128,10 @@ read2:
 
 read3:
 	begin
-	if (bus_ready == 1 && wait_counter == 5'd0) begin
+	if (bus_ready == 1 && wait_counter == 10'd0) begin
 		next <= read4;				
 	end
-	else if (bus_ready == 1 && wait_counter != 5'd0) begin
+	else if (bus_ready == 1 && wait_counter != 10'd0) begin
 		next <= read2;
 	end
 	else begin
@@ -185,7 +185,7 @@ idle:
 	master_busy <= 0;
 	w_counter <= 5'd0;
 	r_counter <= 5'd0;
-	wait_counter = 5'd0;
+	wait_counter <= 10'd0;
 	addr_tx <= 0;
 	data_tx <= 0;
 	// valid <= 0;
@@ -239,22 +239,22 @@ write3:
 	// 	valid_s <= 1;
 	// end	
 	begin
-	if (bus_ready == 1 && wait_counter == 5'd0) begin
+	if (bus_ready == 1 && wait_counter == 10'd0) begin
 		valid_s <= 1;
 			
 	end
-	else if (bus_ready == 1 && wait_counter != 5'd0) begin
+	else if (bus_ready == 1 && wait_counter != 10'd0) begin
 		valid <= 0;
 		valid_s <= 1;
 		addr_buffer1 <= addr_buffer2;
 		w_counter <= 5'd0;
-		wait_counter <= 5'd0;
+		wait_counter <= 10'd0;
 	end
 	else begin
 		valid <= 0;
 		valid_s <= 1;
 		w_counter <= 5'd0;
-		wait_counter <= wait_counter + 5'd1;
+		wait_counter <= wait_counter + 10'd1;
 	end
 
 	end
@@ -319,21 +319,21 @@ read2:
 
 read3:
 	begin
-	if (bus_ready == 1 && wait_counter == 5'd0) begin
+	if (bus_ready == 1 && wait_counter == 10'd0) begin
 		valid_s <= 1;				
 	end
-	else if (bus_ready == 1 && wait_counter != 5'd0) begin
+	else if (bus_ready == 1 && wait_counter != 10'd0) begin
 		valid <= 0;
 		valid_s <= 1;
 		addr_buffer1 <= addr_buffer2;
 		r_counter <= 5'd0;
-		wait_counter <= 5'd0;
+		wait_counter <= 10'd0;
 	end
 	else begin
 		valid <= 0;
 		valid_s <= 1;
 		r_counter <= 5'd0;
-		wait_counter <= wait_counter + 5'd1;
+		wait_counter <= wait_counter + 10'd1;
 	end
 
 	end

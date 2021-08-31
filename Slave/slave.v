@@ -11,7 +11,7 @@ module slave #(
 	
 
 	// Output Ports
-    // output [2:0] state_out,
+    output [2:0] state_out,
     // output [2:0] next_state_out,
     // output [ADN-1:0]   AddressReg_out,
     // output [N-1:0]     WriteDataReg_out,

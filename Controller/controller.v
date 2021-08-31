@@ -9,7 +9,7 @@ module controller ( input clk, reset,start,
     
     reg [4:0] state = 5'd0;
     reg [4:0] next_state = 5'd0; 
-    reg [1:0] counter = 2'd0;
+    reg [3:0] counter = 4'd0;
 
     assign state_out = state;
 
@@ -20,6 +20,7 @@ module controller ( input clk, reset,start,
                 state2b = 5'd4,
                 state3a = 5'd5,
                 state3b = 5'd6,
+                state3c = 5'd17,
                 state4a = 5'd7,
                 state4b = 5'd8,
                 state5a = 5'd9,
@@ -58,7 +59,7 @@ module controller ( input clk, reset,start,
 
             //master 1 write to slave 1
             state1a:begin
-                if (counter <2'd2)
+                if (counter <4'd2)
                     next_state <= state1a;
                 else
                     next_state <=state1b;
@@ -75,7 +76,7 @@ module controller ( input clk, reset,start,
 
             //master 1 read from slave 1
             state2a:begin
-               if (counter <2'd2)
+               if (counter <4'd2)
                     next_state <= state2a;
                 else
                     next_state <=state2b;
@@ -90,7 +91,14 @@ module controller ( input clk, reset,start,
 
             //master 1 write to slave 2
             state3a:begin
-                if (counter <2'd2)
+                if (counter <4'd2)
+                    next_state <= state3a;
+                else
+                    next_state <=state3c;
+            end
+
+            state3c:begin
+                if (counter <4'd10)
                     next_state <= state3a;
                 else
                     next_state <=state3b;
@@ -105,7 +113,7 @@ module controller ( input clk, reset,start,
 
             //master 1 read from slave 2    
             state4a:begin
-                if (counter <2'd2)
+                if (counter <4'd2)
                     next_state <= state4a;
                 else
                     next_state <=state4b;
@@ -120,7 +128,7 @@ module controller ( input clk, reset,start,
 
             //master 2 write to slave 3
             state5a:begin
-                if (counter <2'd2)
+                if (counter <4'd2)
                     next_state <= state5a;
                 else
                     next_state <=state5b;
@@ -135,7 +143,7 @@ module controller ( input clk, reset,start,
 
             //master 2 read from slave 3    
             state6a:begin
-                if (counter <2'd2)
+                if (counter <4'd2)
                     next_state <= state6a;
                 else
                     next_state <=state6b;
@@ -150,7 +158,7 @@ module controller ( input clk, reset,start,
 
             //master 1,2 write at same time
             state7a:begin
-                if (counter <2'd2)
+                if (counter <4'd2)
                     next_state <= state7a;
                 else
                     next_state <=state7b;
@@ -165,7 +173,7 @@ module controller ( input clk, reset,start,
 
             //master 1,2 read at same time   
             state8a:begin
-                if (counter <2'd2)
+                if (counter <4'd2)
                     next_state <= state8a;
                 else
                     next_state <=state8b;
@@ -188,7 +196,7 @@ module controller ( input clk, reset,start,
     always @(posedge clk) begin
         case (state)
             idle: begin
-                counter <= 2'd0;
+                counter <= 4'd0;
                 m1_enable <= 0; m2_enable <= 0;
                 m1_read_en <= 0; m2_read_en <= 0;
                 data_in1 <= 8'd0; data_in2 <= 8'd0;
@@ -197,7 +205,7 @@ module controller ( input clk, reset,start,
 
             //master 1 write to slave 1
             state1a:begin
-                counter <= counter + 2'd1;
+                counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 0;
                 m1_read_en <= 0; m2_read_en <= 0;
                 data_in1 <= 8'd101; data_in2 <= 8'd0;
@@ -210,7 +218,7 @@ module controller ( input clk, reset,start,
 
             //master 1 read from slave 1
             state2a:begin
-                counter <= counter + 2'd1;
+                counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 0;
                 m1_read_en <= 1; m2_read_en <= 0;
                 data_in1 <= 8'd0; data_in2 <= 8'd0;
@@ -221,13 +229,30 @@ module controller ( input clk, reset,start,
                 m1_enable <= 0;
             end
 
-            //master 1 write to slave 2
+            //master 1 read to slave 2 and master 2 write to slave 1
             state3a:begin
-                counter <= counter + 2'd1;
+                counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 0;
-                m1_read_en <= 0; m2_read_en <= 0;
+                m1_read_en <= 1; m2_read_en <= 0;
                 data_in1 <= 8'd101; data_in2 <= 8'd0;
                 addr_in1 <= 14'd5097; addr_in2 <= 14'd0;
+            end
+
+            state3c:begin
+                counter <= counter + 4'd1;
+                if(count < 4'd8) begin
+                    m1_enable <= 0; m2_enable <= 0;
+                    m1_read_en <= 0; m2_read_en <= 0;
+                    data_in1 <= 8'd0; data_in2 <= 8'd0;
+                    addr_in1 <= 14'd0; addr_in2 <= 14'd0;  
+                end
+                else begin
+                    m1_enable <= 0; m2_enable <= 1;
+                    m1_read_en <= 0; m2_read_en <= 0;
+                    data_in1 <= 8'd0; data_in2 <= 8'd101;
+                    addr_in1 <= 14'd0; addr_in2 <= 14'd1001; 
+                end
+                
             end
 
             state3b: begin
@@ -236,7 +261,7 @@ module controller ( input clk, reset,start,
 
             //master 1 read from slave 2    
             state4a:begin
-                counter <= counter + 2'd1;
+                counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 0;
                 m1_read_en <= 1; m2_read_en <= 0;
                 data_in1 <= 8'd101; data_in2 <= 8'd0;
@@ -249,7 +274,7 @@ module controller ( input clk, reset,start,
 
             //master 2 write to slave 3
             state5a:begin
-                counter <= counter + 2'd1;
+                counter <= counter + 4'd1;
                 m1_enable <= 0; m2_enable <= 1;
                 m1_read_en <= 0; m2_read_en <= 0;
                 data_in2 <= 8'd101; data_in1 <= 8'd0;
@@ -262,7 +287,7 @@ module controller ( input clk, reset,start,
 
             //master 2 read from slave 3    
             state6a:begin
-                counter <= counter + 2'd1;
+                counter <= counter + 4'd1;
                 m1_enable <= 0; m2_enable <= 1;
                 m1_read_en <= 1; m2_read_en <= 1;
                 data_in2 <= 8'd101; data_in1 <= 8'd0;
@@ -275,7 +300,7 @@ module controller ( input clk, reset,start,
 
             //master 1,2 write at same time
             state7a:begin
-                counter <= counter + 2'd1;
+                counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 1;
                 m1_read_en <= 0; m2_read_en <= 0;
                 data_in1 <= 8'd102; data_in2 <= 8'd103;
@@ -288,7 +313,7 @@ module controller ( input clk, reset,start,
 
             //master 1,2 read at same time   
             state8a:begin
-                counter <= counter + 2'd1;
+                counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 1;
                 m1_read_en <= 1; m2_read_en <= 1;
                 data_in1 <= 8'd0; data_in2 <= 8'd0;

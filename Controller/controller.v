@@ -250,7 +250,7 @@ module controller ( input clk, reset,start,
                     m1_enable <= 0; m2_enable <= 1;
                     m1_read_en <= 0; m2_read_en <= 0;
                     data_in1 <= 8'd0; data_in2 <= 8'd102;
-                    addr_in1 <= 14'd0; addr_in2 <= 14'd1001; 
+                    addr_in1 <= 14'd0; addr_in2 <= 14'd1002; 
                 end
                 
             end

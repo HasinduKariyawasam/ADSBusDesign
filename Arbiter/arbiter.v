@@ -20,6 +20,8 @@ module arbiter(input clk, reset,
     reg m1_hold = 0; 
     reg m2_hold = 0;
     reg connect_back = 0;
+    reg reconnect_m1 = 0;
+    reg reconnect_m2 = 0;
     wire [1:0] connected_slave;
     reg [3:0] prev_state;
     wire [3:0] connect_state;
@@ -110,17 +112,22 @@ module arbiter(input clk, reset,
                 connect: begin
                     if ((m1_connect1 || m1_connect2 || m1_connect3)) begin
                         state <= busy_m1;
-                        connected_master <= 2'd1;    
+                        connected_master <= 2'd1;
+                        if (reconnect_m1 == 1)  m2_hold <= 1;
+                        else                    m2_hold <= 0;    
                     end
                     else if ((m2_connect1 || m2_connect2 || m2_connect3)) begin
                         state <= busy_m2;
                         connected_master <= 2'd2;
+                        if (reconnect_m2 == 1)  m1_hold <= 1;
+                        else                    m1_hold <= 0;
                     end 
                     else    state <= idle;
                 end
 
                 busy_m1: begin
                     m1_hold <= 0;
+                    reconnect_m2 <= 0;
                     if (~m1_request && m2_hold) begin
                         // state <= idle;
                         state <= connect;
@@ -129,7 +136,7 @@ module arbiter(input clk, reset,
                     else if (~m1_request && ~m2_hold) begin
                         state <= idle;
                     end
-                    else if ((busy_counter >= 4'd12) && (m2_request)) begin
+                    else if ((busy_counter >= 4'd12) && (m2_request) && ~(reconnect_m1)) begin
                         state <= switch_master;
                         prev_state <= connect_state;
                         connect_back <= 0;
@@ -143,6 +150,7 @@ module arbiter(input clk, reset,
 
                 busy_m2: begin
                     m2_hold <= 0;
+                    reconnect_m1 <= 0;
                     if (~m2_request && m1_hold) begin
                         state <= connect;
                         connect_back <= 1;
@@ -150,7 +158,7 @@ module arbiter(input clk, reset,
                     else if (~m2_request && ~m1_hold) begin
                         state <= idle;
                     end 
-                    else if ((busy_counter >= 4'd12) && (m1_request)) begin
+                    else if ((busy_counter >= 4'd12) && (m1_request) && ~(reconnect_m2)) begin
                         state <= switch_master;
                         prev_state <= connect_state;
                         connect_back <= 0;
@@ -167,11 +175,13 @@ module arbiter(input clk, reset,
                         connected_master <= 2'd2;
                         state <= wait_address;
                         m1_hold <= 1;
+                        reconnect_m1 <= 1;
                     end
                     else if (connected_master == 2'd2 && m1_request) begin
                         connected_master <= 2'd1;
                         state <= wait_address;
                         m2_hold <= 1;
+                        reconnect_m2 <= 1;
                     end
                     else begin
                         state <= connect;

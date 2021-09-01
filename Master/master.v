@@ -49,6 +49,7 @@ write1 = 4'd3,
 write2 = 4'd4,
 write3 = 4'd5,
 write4 = 4'd6,
+write5 = 4'd12,
 read1 = 4'd7,
 read2 = 4'd8,
 read3 = 4'd9,
@@ -108,12 +109,19 @@ write3:
 
 write4:
 	begin
+	if (bus_ready == 0)
+		next <= write3;
+	else
+		next <= write5;	
+	end
+
+write5:
+	begin
 	if  (w_counter < 5'd14)
-		next <= write4;	
+		next <= write5;	
 	else 
 		next <= idle;
 	end
-
 	
 read1:
 	next <= read2;	
@@ -167,7 +175,7 @@ always @(posedge clock)
 	begin
 	clk_counter <= clk_counter +1;
 	present <= next;
-	write_en_slave <= ~read_en;
+	// write_en_slave <= ~read_en;
 	enable_posedge <= (enable_posedge << 1);
 	enable_posedge[0] <= enable;
 	clk <= ~clk;
@@ -199,6 +207,11 @@ idle:
 		valid <= 0;
 	end			
 	
+	end
+
+check_bus:
+	begin
+	write_en_slave <= ~read_en;
 	end
 
 //take inputs from the user
@@ -260,6 +273,37 @@ write3:
 	end
 
 write4:
+	begin
+	//sending first 6 bits of the address
+	if (bus_ready == 0)
+		begin
+		wait_counter <= 10'd1;
+		end
+	else if  (w_counter < 5'd6)
+		begin
+		w_counter <= w_counter + 5'd1;
+		valid <= 0;
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
+		end
+	
+	//sending remaining bits of the address and data
+	else if (w_counter < 5'd14)
+		begin
+		w_counter <= w_counter + 5'd1;
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
+		data_tx <= data_buffer[7];
+		data_buffer <= (data_buffer << 1);
+		end
+			
+	else if (w_counter == 5'd14)
+		begin
+		valid_s <= 0;
+		end
+	end	
+
+write5:
 	begin
 	//sending first 6 bits of the address
 	if  (w_counter < 5'd6)

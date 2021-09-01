@@ -141,7 +141,7 @@ module arbiter(input clk, reset,
                     else if (~m1_request && ~m2_hold) begin
                         state <= idle;
                     end
-                    else if ((busy_counter >= 10'd12) && (m2_request) && ~(reconnect_m1)) begin
+                    else if ((busy_counter >= 10'd16) && (m2_request) && ~(reconnect_m1)) begin
                         state <= switch_master;
                         prev_state <= connect_state;
                         connect_back <= 0;
@@ -165,7 +165,7 @@ module arbiter(input clk, reset,
                     else if (~m2_request && ~m1_hold) begin
                         state <= idle;
                     end 
-                    else if ((busy_counter >= 10'd12) && (m1_request) && ~(reconnect_m2)) begin
+                    else if ((busy_counter >= 10'd16) && (m1_request) && ~(reconnect_m2)) begin
                         state <= switch_master;
                         prev_state <= connect_state;
                         connect_back <= 0;

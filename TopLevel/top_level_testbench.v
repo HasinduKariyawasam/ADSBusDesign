@@ -19,13 +19,13 @@ module top_level_testbench ();
         state_in = 5'd1; start = 1; #40; start = 0;
 
         #500;
-        state_in = 5'd2; start = 1; #40; start = 0;
+        state_in = 5'd5; start = 1; #40; start = 0;
 
         #1500;
         state_in = 5'd3; start = 1; #40; start = 0;
 
-        #2000;
-        state_in = 5'd6; start = 1; #40; start = 0;
+        // #2000;
+        // state_in = 5'd6; start = 1; #40; start = 0;
         // m1_enable = 0; m1_read_en = 0;
         // m2_enable = 0; m2_read_en = 0;
         // reset = 1; #23; reset = 0;
@@ -64,7 +64,7 @@ module top_level_testbench ();
 
         // m1_read_en = 1; data_in1 = 8'd0; 
         // m1_enable = 1; #40; m1_enable = 0;
-        #2000;
+        #3000;
 
         $stop;
     end

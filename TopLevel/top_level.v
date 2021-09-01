@@ -93,7 +93,7 @@ module top_level (input clk, reset, start,
                     .data_read(m2_data_read));
 
     // slave 1
-    slave #(.MemN(2), .N(8), .DelayN(20), .ADN(12)) slave1(.validIn(s1_valid),
+    slave #(.MemN(2), .N(8), .DelayN(0), .ADN(12)) slave1(.validIn(s1_valid),
                                                 .wren(s1_write_en),
                                                 .Address(s1_address),
                                                 .DataIn(s1_data),

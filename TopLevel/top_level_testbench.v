@@ -23,6 +23,9 @@ module top_level_testbench ();
 
         #1500;
         state_in = 5'd3; start = 1; #40; start = 0;
+
+        #2000;
+        state_in = 5'd6; start = 1; #40; start = 0;
         // m1_enable = 0; m1_read_en = 0;
         // m2_enable = 0; m2_read_en = 0;
         // reset = 1; #23; reset = 0;

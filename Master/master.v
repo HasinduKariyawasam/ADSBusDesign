@@ -50,6 +50,7 @@ write2 = 4'd4,
 write3 = 4'd5,
 write4 = 4'd6,
 write5 = 4'd12,
+writex = 4'd13,
 read1 = 4'd7,
 read2 = 4'd8,
 read3 = 4'd9,
@@ -99,12 +100,17 @@ write3:
 		next <= write4;				
 	end
 	else if (bus_ready == 1 && wait_counter != 10'd0) begin
-		next <= write2;
+		next <= writex;
 	end
 	else begin
 		next <= write3;
 	end
 
+	end
+
+writex:
+	begin
+	next <= write4;
 	end
 
 write4:
@@ -259,13 +265,13 @@ write3:
 	else if (bus_ready == 1 && wait_counter != 10'd0) begin
 		valid <= 0;
 		valid_s <= 1;
-		addr_buffer1 <= addr_buffer2;
-		w_counter <= 5'd0;
+		// addr_buffer1 <= addr_buffer2;
+		w_counter <= 5'd3;
 		wait_counter <= 10'd0;
 	end
 	else begin
 		valid <= 0;
-		valid_s <= 1;
+		valid_s <= 0;
 		w_counter <= 5'd0;
 		wait_counter <= wait_counter + 10'd1;
 	end

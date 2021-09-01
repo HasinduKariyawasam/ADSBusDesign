@@ -208,7 +208,7 @@ module controller ( input clk, reset,start,
                 counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 0;
                 m1_read_en <= 0; m2_read_en <= 0;
-                data_in1 <= 8'd101; data_in2 <= 8'd0;
+                data_in1 <= 8'd212; data_in2 <= 8'd0;
                 addr_in1 <= 14'd1001; addr_in2 <= 14'd0;
             end
 
@@ -249,8 +249,8 @@ module controller ( input clk, reset,start,
                 else begin
                     m1_enable <= 0; m2_enable <= 1;
                     m1_read_en <= 0; m2_read_en <= 0;
-                    data_in1 <= 8'd0; data_in2 <= 8'd102;
-                    addr_in1 <= 14'd0; addr_in2 <= 14'd1002; 
+                    data_in1 <= 8'd0; data_in2 <= 8'd78;
+                    addr_in1 <= 14'd0; addr_in2 <= 14'd5012; 
                 end
                 
             end
@@ -285,13 +285,13 @@ module controller ( input clk, reset,start,
                 m2_enable <= 0;
             end
 
-            //master 2 read from slave 3    
+            //master 2 read from slave 2    
             state6a:begin
                 counter <= counter + 4'd1;
                 m1_enable <= 0; m2_enable <= 1;
                 m1_read_en <= 1; m2_read_en <= 1;
-                data_in2 <= 8'd101; data_in1 <= 8'd0;
-                addr_in2 <= 14'd9193; addr_in1 <= 14'd0;
+                data_in2 <= 8'd0; data_in1 <= 8'd0;
+                addr_in2 <= 14'd5012; addr_in1 <= 14'd0;
             end
 
             state6b: begin

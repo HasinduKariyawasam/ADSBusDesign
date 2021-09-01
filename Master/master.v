@@ -49,13 +49,15 @@ write1 = 4'd3,
 write2 = 4'd4,
 write3 = 4'd5,
 write4 = 4'd6,
-write5 = 4'd12,
-writex = 4'd13,
-read1 = 4'd7,
-read2 = 4'd8,
-read3 = 4'd9,
-read4 = 4'd10,
-read5 = 4'd11;
+write5 = 4'd7,
+writex = 4'd8,
+read1 = 4'd9,
+read2 = 4'd10,
+read3 = 4'd11,
+read4 = 4'd12,
+read5 = 4'd13,
+read6 = 4'd14,
+readx = 4'd15;
 
 ///////////////////////////////////////////////////
 //next state decoder
@@ -146,7 +148,7 @@ read3:
 		next <= read4;				
 	end
 	else if (bus_ready == 1 && wait_counter != 10'd0) begin
-		next <= read2;
+		next <= readx;
 	end
 	else begin
 		next <= read3;
@@ -154,21 +156,31 @@ read3:
 
 	end
 	
+readx:
+	next <= read4;
 
 read4:
 	begin
-	if  (r_counter < 5'd14)
-		next <= read4;
-	else if (slave_valid == 1)
-		next <= read5;
+	if (bus_ready == 0)
+		next <= read3;
 	else
-		next <= read4;
+		next <= read5;	
 	end
 
 read5:
 	begin
-	if (r_counter < 5'd8)
+	if  (r_counter < 5'd14)
 		next <= read5;
+	else if (slave_valid == 1)
+		next <= read6;
+	else
+		next <= read5;
+	end
+
+read6:
+	begin
+	if (r_counter < 5'd8)
+		next <= read6;
 	else
 		next <= idle;
 	end
@@ -349,7 +361,38 @@ read1:
 	
 read2:
 	begin
-	if  (r_counter < 5'd14)	//sending the read address
+		valid <= 0;
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
+		r_counter <= r_counter + 1;
+	end
+
+read3:
+	begin
+	if (bus_ready == 1 && wait_counter == 10'd0) begin
+		valid_s <= 1;				
+	end
+	else if (bus_ready == 1 && wait_counter != 10'd0) begin
+		valid <= 0;
+		valid_s <= 1;
+		// addr_buffer1 <= addr_buffer2;
+		r_counter <= 5'd3;
+		wait_counter <= 10'd0;
+	end
+	else begin
+		valid <= 0;
+		valid_s <= 0;
+		r_counter <= 5'd0;
+		wait_counter <= wait_counter + 10'd1;
+	end
+
+	end
+
+read4:
+	begin
+	if (bus_ready == 0)
+		wait_counter <= 10'd1;
+	else if  (r_counter < 5'd14)	//sending the read address
 		begin
 		valid <= 0;
 		addr_tx <= addr_buffer1[13];
@@ -367,28 +410,7 @@ read2:
 		end
 	end
 
-read3:
-	begin
-	if (bus_ready == 1 && wait_counter == 10'd0) begin
-		valid_s <= 1;				
-	end
-	else if (bus_ready == 1 && wait_counter != 10'd0) begin
-		valid <= 0;
-		valid_s <= 1;
-		addr_buffer1 <= addr_buffer2;
-		r_counter <= 5'd0;
-		wait_counter <= 10'd0;
-	end
-	else begin
-		valid <= 0;
-		valid_s <= 1;
-		r_counter <= 5'd0;
-		wait_counter <= wait_counter + 10'd1;
-	end
-
-	end
-	
-read4:
+read5:
 	begin
 	if  (r_counter < 5'd14)	//sending the read address
 		begin
@@ -409,7 +431,7 @@ read4:
 	end
 
 //getting inputs from the data_rx
-read5:
+read6:
 	begin
 	if (r_counter < 5'd8)
 		begin

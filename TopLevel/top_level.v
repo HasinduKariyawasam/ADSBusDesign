@@ -15,9 +15,9 @@ module top_level (input clk, reset, start,
     wire m2_ready, m2_available, m2_data_in, m2_valid_in;
 
     // wires from slave to arbiter
-    wire s1_ready, s1_data_out, s1_valid_out; 
-    wire s2_ready, s2_data_out, s2_valid_out; 
-    wire s3_ready, s3_data_out, s3_valid_out;
+    wire s1_ready, s1_data_out, s1_valid_out, s1_hold; 
+    wire s2_ready, s2_data_out, s2_valid_out, s2_hold; 
+    wire s3_ready, s3_data_out, s3_valid_out, s3_hold;
 
     // wires from arbiter to slave
     wire s1_address, s1_data, s1_valid, s1_write_en, bus_ready_s1;
@@ -44,6 +44,7 @@ module top_level (input clk, reset, start,
                     .s1_data_in(s1_data_out), .s2_data_in(s2_data_out), .s3_data_in(s3_data_out),
                     .s1_ready(s1_ready), .s2_ready(s2_ready), .s3_ready(s3_ready),
                     .s1_valid_out(s1_valid_out), .s2_valid_out(s2_valid_out), .s3_valid_out(s3_valid_out),
+                    .s1_hold(s1_hold), .s2_hold(s2_hold), .s3_hold(s3_hold),
                     .m1_data_out(m1_data_in), .m2_data_out(m2_data_in),
                     .m1_ready(m1_ready), .m1_available(m1_available),
                     .m2_ready(m2_ready), .m2_available(m2_available),
@@ -93,7 +94,7 @@ module top_level (input clk, reset, start,
                     .data_read(m2_data_read));
 
     // slave 1
-    slave #(.MemN(2), .N(8), .DelayN(0), .ADN(12)) slave1(.validIn(s1_valid),
+    slave #(.MemN(2), .N(8), .DelayN(20), .ADN(12)) slave1(.validIn(s1_valid),
                                                 .wren(s1_write_en),
                                                 .Address(s1_address),
                                                 .DataIn(s1_data),
@@ -101,6 +102,7 @@ module top_level (input clk, reset, start,
                                                 .BusAvailable(bus_ready_s1),
                                                 .ready(s1_ready),
                                                 .validOut(s1_valid_out),
+                                                .hold(s1_hold),
                                                 .DataOut(s1_data_out),
                                                 .state_out(s1_state));
 
@@ -113,6 +115,7 @@ module top_level (input clk, reset, start,
                                                 .BusAvailable(bus_ready_s2),
                                                 .ready(s2_ready),
                                                 .validOut(s2_valid_out),
+                                                .hold(s2_hold),
                                                 .DataOut(s2_data_out),
                                                 .state_out(s2_state));
 
@@ -125,6 +128,7 @@ module top_level (input clk, reset, start,
                                                 .BusAvailable(bus_ready_s3),
                                                 .ready(s3_ready),
                                                 .validOut(s3_valid_out),
+                                                .hold(s3_hold),
                                                 .DataOut(s3_data_out),
                                                 .state_out(s3_state));
 

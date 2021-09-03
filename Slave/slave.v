@@ -18,7 +18,7 @@ module slave #(
     // output [N-1:0]     ReadDataReg_out,
     // output [N_BITS:0]  counterN_out,
     // output [ADN_BITS:0]counterADN_out,
-    output reg  ready=0,validOut=0,
+    output reg  ready=0,validOut=0, hold=0,
 	output reg DataOut=0);
 
 
@@ -102,6 +102,7 @@ module slave #(
                 WriteDataReg <= 0;
                 ReadDataReg  <= 0;
                 DataOut      <= 0;
+                hold         <= 0;
 
             end
             ///////////////////////////////////////////////////////
@@ -151,9 +152,11 @@ module slave #(
                 if((counterDelay < DelayN)) begin
                     counterDelay <= counterDelay + 1'b1;
                     ready        <= 0 ;
+                    hold         <= 1 ;
                 end    
                 else begin
                     ready      <= 1 ;
+                    hold       <= 0 ;
                 end   
             end
 

@@ -16,13 +16,30 @@ module top_level_testbench ();
         reset = 0; 
         start = 0;   
         state_in = 5'd0; #40;
+        
+        // M1 writes to S1
         state_in = 5'd1; start = 1; #40; start = 0;
-
         #500;
-        state_in = 5'd5; start = 1; #40; start = 0;
 
+        // M2 writes to S2
+        state_in = 5'd5; start = 1; #40; start = 0;
         #1500;
-        state_in = 5'd3; start = 1; #40; start = 0;
+
+        // M1 reads from S2 and M2 reads from S1
+        // state_in = 5'd3; start = 1; #40; start = 0;
+        // #3000;
+
+        // M1 writes to S2 and M2 writes to S1
+        state_in = 5'd9; start = 1; #40; start = 0;
+        #3000;
+
+        // // M1 and M2 write at the same time
+        // state_in = 5'd7; start = 1; #40; start = 0;
+        // #1500;
+
+        // // M1 and M2 read at the same time
+        // state_in = 5'd8; start = 1; #40; start = 0;
+        // #1500;
 
         // #2000;
         // state_in = 5'd6; start = 1; #40; start = 0;

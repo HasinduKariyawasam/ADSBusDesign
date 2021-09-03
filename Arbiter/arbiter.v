@@ -143,7 +143,12 @@ module arbiter(input clk, reset,
                     end
                     else if ((slave_hold) && (m2_request)) begin
                         // state <= switch_master;
-                        state <= connect;
+                        if (m2_hold) begin
+                            state <= connect;
+                        end
+                        else begin
+                            state <= wait_address;    
+                        end
                         connected_master <= 2'd2;
                         m1_hold <= 1;
                         prev_state <= busy_m1;
@@ -162,7 +167,12 @@ module arbiter(input clk, reset,
                     end 
                     else if ((slave_hold) && (m1_request)) begin
                         // state <= switch_master;
-                        state <= connect;
+                        if (m1_hold) begin
+                            state <= connect;
+                        end
+                        else begin
+                            state <= wait_address;    
+                        end
                         connected_master <= 2'd1;
                         m2_hold <= 1;
                         prev_state <= busy_m2;
@@ -293,8 +303,10 @@ module arbiter(input clk, reset,
 
     assign connect_state = (connected_master == 2'd1 && slave_ready1 == 1) ? 4'd3 + m1_address_buf : 
                            (connected_master == 2'd1 && slave_ready1 == 0 && m2_hold == 1) ? 4'd6 + m2_address_buf :
+                           (connected_master == 2'd1 && slave_ready1 == 0 && m2_hold == 0 && m1_hold == 1) ? 4'd3 + m1_address_buf :
                            (connected_master == 2'd2 && slave_ready2 == 1) ? 4'd6 + m2_address_buf : 
-                           (connected_master == 2'd2 && slave_ready2 == 0 && m1_hold == 1) ? 4'd3 + m1_address_buf : 4'd0;
+                           (connected_master == 2'd2 && slave_ready2 == 0 && m1_hold == 1) ? 4'd3 + m1_address_buf : 
+                           (connected_master == 2'd2 && slave_ready2 == 0 && m1_hold == 0 && m2_hold == 1) ? 4'd6 + m2_address_buf : 4'd0;
 
     assign slave_ready1 = (m1_address_buf == 2'd0) ? s1_ready : (m1_address_buf == 2'd1) ? s2_ready : (m1_address_buf == 2'd2) ? s3_ready : 0;
     assign slave_ready2 = (m2_address_buf == 2'd0) ? s1_ready : (m2_address_buf == 2'd1) ? s2_ready : (m2_address_buf == 2'd2) ? s3_ready : 0;

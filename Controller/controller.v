@@ -30,7 +30,10 @@ module controller ( input clk, reset,start,
                 state7a = 5'd13,
                 state7b = 5'd14,
                 state8a = 5'd15,
-                state8b = 5'd16;
+                state8b = 5'd16,
+                state9a = 5'd18,
+                state9b = 5'd19,
+                state9c = 5'd20;
 
 
     always @(*) begin
@@ -52,6 +55,8 @@ module controller ( input clk, reset,start,
                     next_state <= state7a;
                 else if (start == 1 && state_in ==5'd8)
                     next_state <= state8a;
+                else if (start == 1 && state_in ==5'd9)
+                    next_state <= state9a;
                 else 
                     next_state <= idle;
                 
@@ -184,6 +189,28 @@ module controller ( input clk, reset,start,
                     next_state <= idle;
                 else
                     next_state <=state8b;
+            end
+
+            //split transaction write
+            state9a:begin
+                if (counter <4'd2)
+                    next_state <= state9a;
+                else
+                    next_state <=state9c;
+            end
+
+            state9c:begin
+                if (counter <4'd10)
+                    next_state <= state9c;
+                else
+                    next_state <=state9b;
+            end
+
+            state9b: begin
+                if (m1_request == 0 && m2_request == 0)
+                    next_state <= idle;
+                else
+                    next_state <=state9b;
             end
         endcase
         
@@ -322,6 +349,36 @@ module controller ( input clk, reset,start,
 
             state8b: begin
                 m1_enable <= 0; m2_enable <= 0;
+            end
+
+            //master 1 write to slave 2 and master 2 write to slave 1
+            state9a:begin
+                counter <= counter + 4'd1;
+                m1_enable <= 1; m2_enable <= 0;
+                m1_read_en <= 0; m2_read_en <= 0;
+                data_in1 <= 8'd78; data_in2 <= 8'd0;
+                addr_in1 <= 14'd5012; addr_in2 <= 14'd0;
+            end
+
+            state9c:begin
+                counter <= counter + 4'd1;
+                if(counter < 4'd8) begin
+                    m1_enable <= 0; m2_enable <= 0;
+                    m1_read_en <= 0; m2_read_en <= 0;
+                    data_in1 <= 8'd0; data_in2 <= 8'd0;
+                    addr_in1 <= 14'd0; addr_in2 <= 14'd0;  
+                end
+                else begin
+                    m1_enable <= 0; m2_enable <= 1;
+                    m1_read_en <= 0; m2_read_en <= 0;
+                    data_in1 <= 8'd0; data_in2 <= 8'd62;
+                    addr_in1 <= 14'd0; addr_in2 <= 14'd1001; 
+                end
+                
+            end
+
+            state9b: begin
+                m2_enable <= 0;
             end
         endcase
 

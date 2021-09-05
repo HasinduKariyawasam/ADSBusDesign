@@ -33,8 +33,11 @@ output reg [15:0]clk_counter = 16'd0
 
 reg [7:0] data_buffer = 8'd0;		// buffer to keep input data
 reg [7:0] data_buffer_inc = 8'd0;
-reg [13:0] addr_buffer = 14'd0;		// buffer to keep input address
+//////Changed addr_buffer to addr_buffer1 //reg [13:0] addr_buffer = 14'd0;		// buffer to keep input address
 reg [2:0] burst_mode_buffer = 3'd0; 	// buffer to keep burst mode
+reg [13:0] addr_buffer1 = 14'd0;	// buffer to keep input address
+reg [13:0] addr_buffer2 = 14'd0;
+reg [9:0] wait_counter = 10'd0;
 //reg [4:0] w_counter = 5'd0;		// counter to count number of transmitted bits
 //reg [4:0] r_counter = 5'd0;		// counter to count clock cycles in read operation
 reg [1:0] enable_posedge = 2'd0;	// register to identify positive edge of the enable signal
@@ -53,24 +56,32 @@ fetch = 5'd2,
 write1 = 5'd3,
 write2 = 5'd4,
 write3 = 5'd5,
+writex = 5'd6,
 write4 = 5'd6,
-read1 = 5'd7,
-read2 = 5'd8,
-read3 = 5'd9,
-read4 = 5'd10,
-read5 = 5'd11,
-burst_wr1 = 5'd12,
-burst_wr2 = 5'd13,
-burst_wr3 = 5'd14,
-burst_wr4 = 5'd15,
-burst_wr5 = 5'd16,
-burst_wr6 = 5'd17,
-burst_rd1 = 5'd18,
-burst_rd2 = 5'd19,
-burst_rd3 = 5'd20,
-burst_rd4 = 5'd21,
-burst_rd5 = 5'd22,
-burst_rd6 = 5'd23;
+write5 = 5'd7,
+read1 = 5'd8,
+read2 = 5'd9,
+read3 = 5'd10,
+readx = 5'd11,
+read4 = 5'd12,
+read5 = 5'd13,
+read6 = 5'd14,
+burst_wr1 = 5'd15,
+burst_wr2 = 5'd16,
+burst_wr3 = 5'd17,
+burst_wrx = 5'd18,
+burst_wr4 = 5'd18,
+burst_wr5 = 5'd19,
+burst_wr6 = 5'd20,
+burst_wr7 = 5'd21,
+burst_rd1 = 5'd22,
+burst_rd2 = 5'd23,
+burst_rd3 = 5'd24,
+burst_rdx = 5'd25,
+burst_rd4 = 5'd26,
+burst_rd5 = 5'd27,
+burst_rd6 = 5'd28,
+burst_rd7 = 5'd29;
 
 ///////////////////////////////////////////////////
 //next state decoder
@@ -121,18 +132,43 @@ always @(*) begin
 			begin
 			if  (w_counter < 5'd2)
 				next <= write2;	
-			else if (w_counter >= 5'd2)
+			else 
 				next <= write3;
 			end
 
-		write3:
+		write3: 
+			begin
+			if (bus_ready == 1 && wait_counter == 10'd0) begin
+				next <= write4;				
+			end
+			else if (bus_ready == 1 && wait_counter != 10'd0) begin
+				next <= writex;
+			end
+			else begin
+				next <= write3;
+			end
+
+			end
+
+		writex:
+			begin
 			next <= write4;
+			end
+
 
 		write4:
 			begin
+			if (bus_ready == 0)
+				next <= write3;
+			else
+				next <= write5;	
+			end
+
+		write5:
+			begin
 			if  (w_counter < 5'd14)
-				next <= write4;	
-			else if (w_counter >= 5'd14)
+				next <= write5;	
+			else 
 				next <= idle;
 			end
 
@@ -149,25 +185,50 @@ always @(*) begin
 			end
 
 		read3:
+			begin
+			if (bus_ready == 1 && wait_counter == 10'd0) begin
+				next <= read4;				
+			end
+			else if (bus_ready == 1 && wait_counter != 10'd0) begin
+				next <= readx;
+			end
+			else begin
+				next <= read3;
+			end
+
+			end
+
+		readx:
 			next <= read4;
 
 		read4:
 			begin
-			if  (r_counter < 5'd14)
-				next <= read4;
-			else if (slave_valid == 1)
-				next <= read5;
+			if (bus_ready == 0)
+				next <= read3;
 			else
-				next <= read4;
+				next <= read5;	
 			end
 
 		read5:
 			begin
-			if (r_counter < 5'd8)
+			if  (r_counter < 5'd14)
 				next <= read5;
+			else if (slave_valid == 1)
+				next <= read6;
+			else
+				next <= read5;
+			end
+
+		read6:
+			begin
+			if (r_counter < 5'd8)
+				next <= read6;
 			else
 				next <= idle;
 			end
+		
+
+
 
 		burst_wr1:begin
 			next <= burst_wr2;
@@ -180,41 +241,57 @@ always @(*) begin
 				next <= burst_wr3;
 		end
 
-		burst_wr3: next <= burst_wr4;
+		burst_wr3: begin
+			if (bus_ready == 1 && wait_counter == 10'd0) begin
+				next <= burst_wr4;				
+			end
+			else if (bus_ready == 1 && wait_counter != 10'd0) begin
+				next <= burst_wrx;
+			end
+			else begin
+				next <= burst_wr3;
+			end
 
-		burst_wr4: begin
-			if  (w_counter < 5'd6)
-				next <= burst_wr4;
-
-			else if (w_counter < 5'd11)
-				next <= burst_wr4;
-
-			else if (w_counter < 5'd14)
-				next <= burst_wr4;
-
-			else if (w_counter == 5'd14)
-				next <= burst_wr5;
 		end
 
-		burst_wr5:begin
+		burst_wrx:begin
+			next <= burst_wr4;
+		end
+
+		burst_wr4:
+			begin
+			if (bus_ready == 0)
+				next <= burst_wr3;
+			else
+				next <= burst_wr5;	
+			end
+
+		burst_wr5: begin
+			if  (w_counter < 5'd14)
+				next <= burst_wr5;	
+			else 
+				next <= burst_wr6;
+		end
+
+		burst_wr6:begin
 			if (burst_counter < burst_size) begin
 				if (slave_ready == 1 ) 
-					next <= burst_wr6;
+					next <= burst_wr7;
 
 				else
-					next <= burst_wr5;
+					next <= burst_wr6;
 			end
 
 			else 
 				next <= idle;
 		end
 
-		burst_wr6: begin
+		burst_wr7: begin
 			if (w_counter < 5'd8)
-				next <= burst_wr6;
+				next <= burst_wr7;
 
 			else
-				next <= burst_wr5; 
+				next <= burst_wr6; 
 		end
 
 		burst_rd1:
@@ -229,32 +306,54 @@ always @(*) begin
 			end
 
 		burst_rd3:
+			begin
+			if (bus_ready == 1 && wait_counter == 10'd0) begin
+				next <= burst_rd4;				
+			end
+			else if (bus_ready == 1 && wait_counter != 10'd0) begin
+				next <= burst_rdx;
+			end
+			else begin
+				next <= burst_rd3;
+			end
+
+			end
+		
+		burst_rdx:
 			next <= burst_rd4;
 
 		burst_rd4:
 			begin
-			if  (r_counter < 5'd14)
-				next <= burst_rd4;
-			else if (slave_valid == 1)
-				next <= burst_rd5;
+			if (bus_ready == 0)
+				next <= burst_rd3;
 			else
-				next <= burst_rd4;
+				next <= burst_rd5;	
 			end
 
 		burst_rd5:
 			begin
-			if (r_counter < 5'd8)
+			if  (r_counter < 5'd14)
 				next <= burst_rd5;
-			else
+			else if (slave_valid == 1)
 				next <= burst_rd6;
+			else
+				next <= burst_rd5;
 			end
 
-		burst_rd6: begin
+		burst_rd6:
+			begin
+			if (r_counter < 5'd8)
+				next <= burst_rd6;
+			else
+				next <= burst_rd7;
+			end
+
+		burst_rd7: begin
 			if (burst_counter < burst_size) begin
 				if (slave_valid == 1)
-					next <= burst_rd5;
-				else	
 					next <= burst_rd6;
+				else	
+					next <= burst_rd7;
 			end
 
 			else
@@ -275,7 +374,7 @@ always @(posedge clock)
 	begin
 	clk_counter <= clk_counter +1;
 	present <= next;
-	write_en_slave <= ~read_en;
+	// write_en_slave <= ~read_en;
 	enable_posedge <= (enable_posedge << 1);
 	enable_posedge[0] <= enable;
 	clk <= ~clk;
@@ -288,7 +387,7 @@ case(present)
 idle: 
 	begin
 	data_buffer <= 8'd0;	
-	addr_buffer <= 14'd0;
+	addr_buffer1 <= 14'd0;
 	// bus_req	<= 0;
 	master_busy <= 0;
 	w_counter <= 5'd0;
@@ -296,6 +395,7 @@ idle:
 	burst_counter = 10'd0;
 	burst_size = 10'd0;
 
+	wait_counter <= 10'd0;
 	addr_tx <= 0;
 	data_tx <= 0;
 	// valid <= 0;
@@ -311,6 +411,11 @@ idle:
 	
 	end
 
+check_bus:
+	begin
+	write_en_slave <= ~read_en;
+	end
+
 //take inputs from the user
 fetch:
 	begin
@@ -318,7 +423,7 @@ fetch:
 		master_busy <= 1;
 		data_buffer <= data_in;
 		data_buffer_inc <= data_in;
-		addr_buffer <= addr_in;
+		addr_buffer1 <= addr_in;
 		burst_mode_buffer <= burst_mode_in;
 		w_counter <= 5'd0;
 		r_counter <= 5'd0;
@@ -352,27 +457,66 @@ write1:
 	begin
 	valid <= 0;
 	valid_s <= 1;
+	addr_buffer2 <= addr_buffer1;
 	w_counter <= 5'd0;
 	end
 
 
 write2:
 	begin
+	//sending first 2 bits of the address
+		w_counter <= w_counter + 5'd1;
+		valid <= 0;
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
+	end
+
+write3:
+	// 	begin
+	// 	valid_s <= 1;
+	// end	
+	begin
+	if (bus_ready == 1 && wait_counter == 10'd0) begin
+		valid_s <= 1;
+			
+	end
+	else if (bus_ready == 1 && wait_counter != 10'd0) begin
+		valid <= 0;
+		valid_s <= 1;
+		// addr_buffer1 <= addr_buffer2;
+		w_counter <= 5'd3;
+		wait_counter <= 10'd0;
+	end
+	else begin
+		valid <= 0;
+		valid_s <= 0;
+		w_counter <= 5'd0;
+		wait_counter <= wait_counter + 10'd1;
+	end
+
+	end
+
+write4:
+	begin
 	//sending first 6 bits of the address
-	if  (w_counter < 5'd6)
+	if (bus_ready == 0)
+		begin
+		wait_counter <= 10'd1;
+		end
+	else if  (w_counter < 5'd6)
 		begin
 		w_counter <= w_counter + 5'd1;
 		valid <= 0;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		end
 	
 	//sending remaining bits of the address and data
 	else if (w_counter < 5'd14)
 		begin
 		w_counter <= w_counter + 5'd1;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		data_tx <= data_buffer[7];
 		data_buffer <= (data_buffer << 1);
 		end
@@ -381,30 +525,25 @@ write2:
 		begin
 		valid_s <= 0;
 		end
-	end
+	end	
 
-write3:
-	begin
-		valid_s <= 1;
-	end
-
-write4:
+write5:
 	begin
 	//sending first 6 bits of the address
 	if  (w_counter < 5'd6)
 		begin
 		w_counter <= w_counter + 5'd1;
 		valid <= 0;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		end
 	
 	//sending remaining bits of the address and data
 	else if (w_counter < 5'd14)
 		begin
 		w_counter <= w_counter + 5'd1;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		data_tx <= data_buffer[7];
 		data_buffer <= (data_buffer << 1);
 		end
@@ -422,15 +561,48 @@ read1:
 	begin
 	valid_s <= 1;
 	valid <= 0;
+	addr_buffer2 <= addr_buffer1;
+	w_counter <= 5'd0;
 	end	
 	
 read2:
 	begin
-	if  (r_counter < 5'd14)	//sending the read address
+		valid <= 0;
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
+		r_counter <= r_counter + 1;
+	end
+
+read3:
+	begin
+	if (bus_ready == 1 && wait_counter == 10'd0) begin
+		valid_s <= 1;				
+	end
+	else if (bus_ready == 1 && wait_counter != 10'd0) begin
+		valid <= 0;
+		valid_s <= 1;
+		// addr_buffer1 <= addr_buffer2;
+		r_counter <= 5'd3;
+		wait_counter <= 10'd0;
+	end
+	else begin
+		valid <= 0;
+		valid_s <= 0;
+		r_counter <= 5'd0;
+		wait_counter <= wait_counter + 10'd1;
+	end
+
+	end
+
+read4:
+	begin
+	if (bus_ready == 0)
+		wait_counter <= 10'd1;
+	else if  (r_counter < 5'd14)	//sending the read address
 		begin
 		valid <= 0;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		r_counter <= r_counter + 1;
 		end
 	else if (slave_valid == 1) //wait until slave_valid signal
@@ -444,18 +616,13 @@ read2:
 		end
 	end
 
-read3:
-	begin
-	valid_s <= 1;
-	end	
-	
-read4:
+read5:
 	begin
 	if  (r_counter < 5'd14)	//sending the read address
 		begin
 		valid <= 0;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		r_counter <= r_counter + 1;
 		end
 	else if (slave_valid == 1) //wait until slave_valid signal
@@ -470,7 +637,7 @@ read4:
 	end
 
 //getting inputs from the data_rx
-read5:
+read6:
 	begin
 	if (r_counter < 5'd8)
 		begin
@@ -489,25 +656,89 @@ end
 burst_wr1:begin
 	valid <= 0;
 	valid_s <= 1;
+	addr_buffer2 <= addr_buffer1;
 	burst_mode <= 1;
 	w_counter <= 5'd0;
 end
 
 burst_wr2: begin
+	w_counter <= w_counter + 5'd1;
+	valid <= 0;
+	addr_tx <= addr_buffer1[13];
+	addr_buffer1 <= (addr_buffer1 << 1);
+
+end
+
+burst_wr3: begin
+	if (bus_ready == 1 && wait_counter == 10'd0) begin
+		valid_s <= 1;
+			
+	end
+	else if (bus_ready == 1 && wait_counter != 10'd0) begin
+		valid <= 0;
+		valid_s <= 1;
+		// addr_buffer1 <= addr_buffer2;
+		w_counter <= 5'd3;
+		wait_counter <= 10'd0;
+	end
+	else begin
+		valid <= 0;
+		valid_s <= 0;
+		w_counter <= 5'd0;
+		wait_counter <= wait_counter + 10'd1;
+	end
+
+end
+
+burst_wr4:
+	begin
+	//sending first 6 bits of the address
+	if (bus_ready == 0)
+		begin
+		wait_counter <= 10'd1;
+		end
+	else if  (w_counter < 5'd6)
+		begin
+		w_counter <= w_counter + 5'd1;
+		valid <= 0;
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
+		end
+	
+	//sending remaining bits of the address and data
+	else if (w_counter < 5'd14)
+		begin
+		w_counter <= w_counter + 5'd1;
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
+		data_tx <= data_buffer[7];
+		data_buffer <= (data_buffer << 1);
+		end
+			
+	else if (w_counter == 5'd14)
+		begin
+		valid_s <= 0;
+		end
+	end
+
+
+
+
+burst_wr5: begin
 	if  (w_counter < 5'd6)
 		begin
 		w_counter <= w_counter + 5'd1;
 		valid <= 0;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 	end
 	
 
 	else if (w_counter < 5'd11)
 		begin
 		w_counter <= w_counter + 5'd1;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		data_tx <= data_buffer[7];
 		data_buffer <= (data_buffer << 1);
 	end
@@ -515,8 +746,8 @@ burst_wr2: begin
 	else if (w_counter < 5'd14)
 		begin
 		w_counter <= w_counter + 5'd1;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		data_tx <= data_buffer[7];
 		data_buffer <= (data_buffer << 1);
 		burst_mode <= burst_mode_buffer[2];
@@ -531,47 +762,7 @@ burst_wr2: begin
 	end
 end
 
-burst_wr3: valid_s <= 1;
-
-burst_wr4: begin
-	if  (w_counter < 5'd6)
-		begin
-		w_counter <= w_counter + 5'd1;
-		valid <= 0;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
-	end
-	
-
-	else if (w_counter < 5'd11)
-		begin
-		w_counter <= w_counter + 5'd1;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
-		data_tx <= data_buffer[7];
-		data_buffer <= (data_buffer << 1);
-	end
-
-	else if (w_counter < 5'd14)
-		begin
-		w_counter <= w_counter + 5'd1;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
-		data_tx <= data_buffer[7];
-		data_buffer <= (data_buffer << 1);
-		burst_mode <= burst_mode_buffer[2];
-		burst_mode_buffer <= (burst_mode_buffer << 1);
-	end	
-
-	else if (w_counter == 5'd14)
-		begin
-		burst_counter <= burst_counter + 10'd1;
-		valid_s <= 0;
-		data_buffer_inc <= data_buffer_inc + 8'd1;
-	end
-end
-
-burst_wr5:begin
+burst_wr6:begin
 	if (burst_counter < burst_size) begin
 		if (slave_ready == 1 ) begin
 			valid_s <= 1;
@@ -589,7 +780,7 @@ burst_wr5:begin
 	
 end
 
-burst_wr6: begin
+burst_wr7: begin
 	if (w_counter < 5'd8) begin
 		w_counter <= w_counter + 5'd1;
 		data_tx <= data_buffer[7];
@@ -607,17 +798,49 @@ end
 burst_rd1:begin
 	valid_s <= 1;
 	burst_mode <= 1;
+	addr_buffer2 <= addr_buffer1;
 	valid <= 0;
 	// next <= burst_rd2;
 end
 
 burst_rd2:
 	begin
-	if  (r_counter < 5'd11)	//sending the read address
+		valid <= 0;
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
+		r_counter <= r_counter + 1;
+	end
+
+burst_rd3:
+	begin
+	if (bus_ready == 1 && wait_counter == 10'd0) begin
+		valid_s <= 1;				
+	end
+	else if (bus_ready == 1 && wait_counter != 10'd0) begin
+		valid <= 0;
+		valid_s <= 1;
+		// addr_buffer1 <= addr_buffer2;
+		r_counter <= 5'd3;
+		wait_counter <= 10'd0;
+	end
+	else begin
+		valid <= 0;
+		valid_s <= 0;
+		r_counter <= 5'd0;
+		wait_counter <= wait_counter + 10'd1;
+	end
+
+	end
+
+burst_rd4:
+	begin
+	if (bus_ready == 0)
+		wait_counter <= 10'd1;
+	else if  (r_counter < 5'd14)	//sending the read address
 		begin
 		valid <= 0;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		r_counter <= r_counter + 1;
 		end
 	else if (slave_valid == 1) //wait until slave_valid signal
@@ -630,27 +853,22 @@ burst_rd2:
 		valid_s <= 0;
 		end
 	end
-
-burst_rd3:
-	begin
-	valid_s <= 1;
-	end	
 	
-burst_rd4:
+burst_rd5:
 	begin
 	if  (r_counter < 5'd11)	//sending the read address
 		begin
 		valid <= 0;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		r_counter <= r_counter + 1;
 		end
 
 	else if (r_counter < 5'd14)
 		begin
 		r_counter <= r_counter + 5'd1;
-		addr_tx <= addr_buffer[13];
-		addr_buffer <= (addr_buffer << 1);
+		addr_tx <= addr_buffer1[13];
+		addr_buffer1 <= (addr_buffer1 << 1);
 		burst_mode <= burst_mode_buffer[2];
 		burst_mode_buffer <= (burst_mode_buffer << 1);
 	end	
@@ -667,7 +885,7 @@ burst_rd4:
 	end
 
 //getting inputs from the data_rx
-burst_rd5:
+burst_rd6:
 	begin
 	if (r_counter < 5'd8)
 		begin
@@ -686,7 +904,7 @@ burst_rd5:
 		
 end
 
-burst_rd6:
+burst_rd7:
 	r_counter <= 5'd0;
 
 
@@ -702,4 +920,120 @@ endmodule
  
  
  
- 
+//  burst_wr1:begin
+// 	valid <= 0;
+// 	valid_s <= 1;
+// 	burst_mode <= 1;
+// 	w_counter <= 5'd0;
+// end
+
+// burst_wr2: begin
+// 	if  (w_counter < 5'd6)
+// 		begin
+// 		w_counter <= w_counter + 5'd1;
+// 		valid <= 0;
+// 		addr_tx <= addr_buffer1[13];
+// 		addr_buffer1 <= (addr_buffer1 << 1);
+// 	end
+	
+
+// 	else if (w_counter < 5'd11)
+// 		begin
+// 		w_counter <= w_counter + 5'd1;
+// 		addr_tx <= addr_buffer1[13];
+// 		addr_buffer1 <= (addr_buffer1 << 1);
+// 		data_tx <= data_buffer[7];
+// 		data_buffer <= (data_buffer << 1);
+// 	end
+
+// 	else if (w_counter < 5'd14)
+// 		begin
+// 		w_counter <= w_counter + 5'd1;
+// 		addr_tx <= addr_buffer1[13];
+// 		addr_buffer1 <= (addr_buffer1 << 1);
+// 		data_tx <= data_buffer[7];
+// 		data_buffer <= (data_buffer << 1);
+// 		burst_mode <= burst_mode_buffer[2];
+// 		burst_mode_buffer <= (burst_mode_buffer << 1);
+// 	end	
+
+// 	else if (w_counter == 5'd14)
+// 		begin
+// 		burst_counter <= burst_counter + 10'd1;
+// 		valid_s <= 0;
+// 		data_buffer_inc <= data_buffer_inc + 8'd1;
+// 	end
+// end
+
+// burst_wr3: valid_s <= 1;
+
+// burst_wr4: begin
+// 	if  (w_counter < 5'd6)
+// 		begin
+// 		w_counter <= w_counter + 5'd1;
+// 		valid <= 0;
+// 		addr_tx <= addr_buffer1[13];
+// 		addr_buffer1 <= (addr_buffer1 << 1);
+// 	end
+	
+
+// 	else if (w_counter < 5'd11)
+// 		begin
+// 		w_counter <= w_counter + 5'd1;
+// 		addr_tx <= addr_buffer1[13];
+// 		addr_buffer1 <= (addr_buffer1 << 1);
+// 		data_tx <= data_buffer[7];
+// 		data_buffer <= (data_buffer << 1);
+// 	end
+
+// 	else if (w_counter < 5'd14)
+// 		begin
+// 		w_counter <= w_counter + 5'd1;
+// 		addr_tx <= addr_buffer1[13];
+// 		addr_buffer1 <= (addr_buffer1 << 1);
+// 		data_tx <= data_buffer[7];
+// 		data_buffer <= (data_buffer << 1);
+// 		burst_mode <= burst_mode_buffer[2];
+// 		burst_mode_buffer <= (burst_mode_buffer << 1);
+// 	end	
+
+// 	else if (w_counter == 5'd14)
+// 		begin
+// 		burst_counter <= burst_counter + 10'd1;
+// 		valid_s <= 0;
+// 		data_buffer_inc <= data_buffer_inc + 8'd1;
+// 	end
+// end
+
+// burst_wr5:begin
+// 	if (burst_counter < burst_size) begin
+// 		if (slave_ready == 1 ) begin
+// 			valid_s <= 1;
+// 			burst_mode <= 1;
+// 			data_buffer <= data_buffer_inc;
+// 			w_counter <= 5'd0;
+// 		end
+
+// 		else
+// 			valid_s <= 0;
+// 	end
+
+// 	else
+// 		valid_s <= 0;
+	
+// end
+
+// burst_wr6: begin
+// 	if (w_counter < 5'd8) begin
+// 		w_counter <= w_counter + 5'd1;
+// 		data_tx <= data_buffer[7];
+// 		data_buffer <= (data_buffer << 1);
+// 	end
+
+// 	else begin
+// 		burst_counter <= burst_counter + 1;
+// 		data_buffer_inc <= data_buffer_inc + 8'd1;
+// 		valid_s <= 0;
+// 	end
+
+// end

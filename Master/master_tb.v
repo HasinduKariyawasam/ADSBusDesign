@@ -65,10 +65,11 @@ initial begin
 end
 
 initial begin
-	
+	enable = 0; read_en = 0; bus_ready = 0; 
 	#100
 	enable = 1;
 	read_en = 0;
+	burst_mode_in == 3'd0;
 	slave_ready = 0;
 	burst_mode_in = 3'd0;
 	data_in = 8'b11010101;
@@ -78,26 +79,66 @@ initial begin
 	enable = 0;
 	bus_ready = 1;
 	
+	#100
+//	slave_ready = 1;
+	
+///////////////////////////////////////////	
 	#500
+	enable = 0;
+	bus_ready = 0;
+//	slave_ready = 0;
+
+	#100
 	enable = 1;
 	read_en = 0;
-	slave_ready = 0;
-	burst_mode_in = 3'd1;
+
+//	slave_ready = 0;
 	data_in = 8'b11010101;
 	addr_in = 14'b10110010110010;
 	
 	#100
 	enable = 0;
 	bus_ready = 1;
-
+	
+	#40
+	bus_ready = 0;
+	
+	#120
+	bus_ready = 1;
+//////////////////////////////////////////////////
 	#500
-	slave_ready = 1;
+	enable = 0;
+	bus_ready = 0;
+//	slave_ready = 0;
+
+	#100
+	enable = 1;
+	read_en = 0;
 	
+//	slave_ready = 0;
+	data_in = 8'b11010101;
+	addr_in = 14'b10110010110010;
 	
-// 	#1000
-// 	enable = 0;
-// 	bus_ready = 0;
-// 	slave_ready = 0;
+	#200
+	bus_ready = 1;
+	#90
+	bus_ready = 0;
+	enable = 0;
+	
+	#400
+	bus_ready = 1;
+
+	#1000
+	enable = 0;
+	bus_ready = 0;
+//	slave_ready = 0;
+
+	#10
+	$stop;
+
+
+
+
 
 // 	#100
 // 	enable = 1;

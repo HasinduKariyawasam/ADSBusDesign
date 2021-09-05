@@ -27,7 +27,7 @@ module slave_tb();
 
     initial begin
       @(posedge clk);
-      validIn = 0; wren = 0; Address = 0; DataIn = 0;
+      validIn = 0; wren = 0; Address = 0; DataIn = 0;BusAvailable=0;
 
       #(CLK_PERIOD*3);
 
@@ -218,6 +218,7 @@ module slave_tb();
       @(posedge clk);
       Address = 0;
       @(posedge clk);
+      BusAvailable = 0;
       Address = 0;
       @(posedge clk);
       Address = 1;
@@ -225,14 +226,20 @@ module slave_tb();
       @(posedge clk);
       Address = 0;
       validIn = 0;
-
-
-
-
-
-
-
       #(CLK_PERIOD*3);
+      @(posedge clk);
+      BusAvailable = 0;
+
+      @(posedge ready);
+      #(CLK_PERIOD*3);
+      BusAvailable = 1;
+
+
+
+
+
+
+      #(CLK_PERIOD*10);
       $stop;
 
     end

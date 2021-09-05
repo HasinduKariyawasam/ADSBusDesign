@@ -146,7 +146,7 @@ module slave #(
                 end    
                 else begin
                     AddressReg <= AddressReg;
-                    ready      <= 1 ;
+                    ready      <= 0 ;
                 end   
             end
 

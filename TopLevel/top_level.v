@@ -22,9 +22,9 @@ module top_level (input clk, reset, start,
     wire s3_ready, s3_data_out, s3_valid_out;
 
     // wires from arbiter to slave
-    wire s1_address, s1_data, s1_valid, s1_write_en,s1_burst;
-    wire s2_address, s2_data, s2_valid, s2_write_en,s2_burst;
-    wire s3_address, s3_data, s3_valid, s3_write_en,s3_burst;
+    wire s1_address, s1_data, s1_valid, s1_write_en,s1_burst,bus_ready_s2;
+    wire s2_address, s2_data, s2_valid, s2_write_en,s2_burst,bus_ready_s3;
+    wire s3_address, s3_data, s3_valid, s3_write_en,s3_burst,bus_ready_s1;
 
     // wires from controller to masters
     wire m1_enable, m1_read_en;
@@ -54,11 +54,11 @@ module top_level (input clk, reset, start,
                     .m2_ready(m2_ready), .m2_available(m2_available),
                     .m1_valid_in(m1_valid_in), .m2_valid_in(m2_valid_in),
                     .s1_address(s1_address), .s1_data(s1_data), 
-                    .s1_valid(s1_valid), .s1_write_en(s1_write_en), .s1_burst(s1_burst),
+                    .s1_valid(s1_valid), .s1_write_en(s1_write_en), .s1_burst(s1_burst), .bus_ready_s1(bus_ready_s1),
                     .s2_address(s2_address), .s2_data(s2_data), 
-                    .s2_valid(s2_valid), .s2_write_en(s2_write_en), .s2_burst(s2_burst),
+                    .s2_valid(s2_valid), .s2_write_en(s2_write_en), .s2_burst(s2_burst), .bus_ready_s2(bus_ready_s2),
                     .s3_address(s3_address), .s3_data(s3_data), 
-                    .s3_valid(s3_valid), .s3_write_en(s3_write_en), .s3_burst(s3_burst),
+                    .s3_valid(s3_valid), .s3_write_en(s3_write_en), .s3_burst(s3_burst), .bus_ready_s3(bus_ready_s3),
                     .state(arbiter_state));
 
     // master 1
@@ -106,39 +106,42 @@ module top_level (input clk, reset, start,
                     .data_read(m2_data_read));
 
     // slave 1
-    slave #(.MemN(2), .N(8), .ADN(12)) slave1(.validIn(s1_valid),
+    slave #(.MemN(2), .N(8), .DelayN(0), .ADN(12)) slave1(.validIn(s1_valid),
                                                 .wren(s1_write_en),
                                                 .reset(reset),
                                                 .Address(s1_address),
                                                 .DataIn(s1_data),
                                                 .BurstEn(s1_burst),
                                                 .clk(clk),
+                                                .BusAvailable(bus_ready_s1),
                                                 .ready(s1_ready),
                                                 .validOut(s1_valid_out),
                                                 .DataOut(s1_data_out),
                                                 .state_out(s1_state));
 
     // slave 2
-    slave #(.MemN(2), .N(8), .ADN(12)) slave2(.validIn(s2_valid),
+    slave #(.MemN(2), .N(8), .DelayN(20), .ADN(12)) slave2(.validIn(s2_valid),
                                                 .wren(s2_write_en),
                                                 .reset(reset),
                                                 .Address(s2_address),
                                                 .DataIn(s2_data),
                                                 .BurstEn(s2_burst),
                                                 .clk(clk),
+                                                .BusAvailable(bus_ready_s2),
                                                 .ready(s2_ready),
                                                 .validOut(s2_valid_out),
                                                 .DataOut(s2_data_out),
                                                 .state_out(s2_state));
 
     // slave 3
-    slave #(.MemN(2), .N(8), .ADN(12)) slave3(.validIn(s3_valid),
+    slave #(.MemN(2), .N(8), .DelayN(0), .ADN(12)) slave3(.validIn(s3_valid),
                                                 .wren(s3_write_en),
                                                 .reset(reset),
                                                 .Address(s3_address),
                                                 .DataIn(s3_data),
                                                 .BurstEn(s3_burst),
                                                 .clk(clk),
+                                                .BusAvailable(bus_ready_s3),
                                                 .ready(s3_ready),
                                                 .validOut(s3_valid_out),
                                                 .DataOut(s3_data_out),

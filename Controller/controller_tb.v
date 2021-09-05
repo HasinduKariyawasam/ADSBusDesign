@@ -27,7 +27,7 @@ module controller_tb ();
 
         #50;
         m1_request = 1; m2_request = 0;
-        state_in = 5'd5; start = 1; #40; start = 0;
+        state_in = 5'd2; start = 1; #40; start = 0;
 
         #450;
         m1_request = 0; m2_request = 0;

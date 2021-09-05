@@ -17,13 +17,9 @@ module arbiter(input clk, reset,
 
     reg [1:0] m1_address_buf = 2'd0;
     reg [1:0] m2_address_buf = 2'd0;
-    reg [9:0] busy_counter = 10'd0;
     reg [1:0] connected_master = 2'd0;
     reg m1_hold = 0; 
     reg m2_hold = 0;
-    reg connect_back = 0;
-    reg reconnect_m1 = 0;
-    reg reconnect_m2 = 0;
     wire [1:0] connected_slave;
     reg [2:0] prev_state;
     wire [3:0] connect_state;
@@ -48,7 +44,6 @@ module arbiter(input clk, reset,
     parameter [2:0] connect = 3'd4;         // Connecting the master to slave 
     parameter [2:0] busy_m1 = 3'd5;         // Master 1 is using the bus
     parameter [2:0] busy_m2 = 3'd6;         // Master 2 is using the bus
-    parameter [2:0] switch_master = 3'd7;   // Switch master during split transaction
 
     // State machine
 
@@ -58,14 +53,12 @@ module arbiter(input clk, reset,
             state <= idle;
             m1_hold <= 0;
             m2_hold <= 0; 
-            connect_back <= 0;   
         end  
         else
             case (state)
                 idle: begin
                     m1_hold <= 0;
                     m2_hold <= 0;
-                    // connect_back <= 0; 
                     if (m1_request && connected_master == 2'd0 && m1_address_valid) begin
                         connected_master <= 2'd1;
                         state <= wait_address;
@@ -102,7 +95,6 @@ module arbiter(input clk, reset,
                 end
 
                 msb2: begin
-                    // prev_state <= connect_state;
                     if (connected_master == 2'd1) begin
                         m1_address_buf <= {m1_address_buf[0], m1_address};
                         state <= connect;
@@ -115,101 +107,88 @@ module arbiter(input clk, reset,
                 end
                 
                 connect: begin
-                    // if (slave_ready)    prev_state <= prev_state;
-                    // else                prev_state <= connect_state;
                     if ((m1_connect1 || m1_connect2 || m1_connect3)) begin
                         state <= busy_m1;
-                        connected_master <= 2'd1;
-                        // if (reconnect_m1 == 1)  m2_hold <= 1;
-                        // else                    m2_hold <= 0;    
+                        if(connected_master == 2'd2) begin
+                                connected_master <= 2'd1;
+                                m2_hold          <= 1;
+                        end
+                        else    connected_master <= 2'd1; 
                     end
                     else if ((m2_connect1 || m2_connect2 || m2_connect3)) begin
                         state <= busy_m2;
-                        connected_master <= 2'd2;
-                        // if (reconnect_m2 == 1)  m1_hold <= 1;
-                        // else                    m1_hold <= 0;
+                        if(connected_master == 2'd1) begin
+                                connected_master <= 2'd2;
+                                m1_hold          <= 1;
+                        end
+                        else    connected_master <= 2'd2;
                     end 
-                    else    state <= idle;
+                    else        state            <= idle;
                 end
 
                 busy_m1: begin
-                    m1_hold <= 0;
                     if (~m1_request && m2_hold) begin
                         connected_master <= 2'd2;
-                        state <= connect;
+                        m1_hold          <= 0;   
+                        state            <= connect;
+
                     end
-                    else if (~m1_request && ~m2_hold) begin
+                    else if (~m1_request) begin
+                        m1_hold <= 0;   
                         state <= idle;
                     end
                     else if ((slave_hold) && (m2_request)) begin
-                        // state <= switch_master;
-                        if (m2_hold) begin
+                        if(m1_hold)     state <= busy_m1;
+                        else if (m2_hold) begin
                             state <= connect;
+                            connected_master <= 2'd2;
+                            m1_hold <= 1;
+                            prev_state <= busy_m1;
                         end
                         else begin
-                            state <= wait_address;    
+                            state <= wait_address;   
+                            connected_master <= 2'd2;
+                            m1_hold <= 1;
+                            prev_state <= busy_m1; 
                         end
-                        connected_master <= 2'd2;
-                        m1_hold <= 1;
-                        prev_state <= busy_m1;
+                        
                     end  
                     else    state <= busy_m1;
                 end
 
                 busy_m2: begin
-                    m2_hold <= 0;
+                    
                     if (~m2_request && m1_hold) begin
                         connected_master <= 2'd1;
                         state <= connect;
+                        m2_hold <= 0;
                     end
-                    else if (~m2_request && ~m1_hold) begin
+                    else if (~m2_request) begin
                         state <= idle;
+                        m2_hold <= 0;
                     end 
                     else if ((slave_hold) && (m1_request)) begin
-                        // state <= switch_master;
-                        if (m1_hold) begin
+                        if(m2_hold) state <= busy_m2;
+                        else if (m1_hold) begin
                             state <= connect;
+                            connected_master <= 2'd1;
+                            m2_hold <= 1;
+                            prev_state <= busy_m2;
                         end
                         else begin
-                            state <= wait_address;    
+                            state <= wait_address;
+                            connected_master <= 2'd1;
+                            m2_hold <= 1;
+                            prev_state <= busy_m2;    
                         end
-                        connected_master <= 2'd1;
-                        m2_hold <= 1;
-                        prev_state <= busy_m2;
+                        
                     end       
                     else    state <= busy_m2;
-                end
-
-                switch_master: begin
-                    if (connected_master == 2'd1 && m2_request) begin
-                        connected_master <= 2'd2;
-                        state <= wait_address;
-                    end
-                    else if (connected_master == 2'd2 && m1_request) begin
-                        connected_master <= 2'd1;
-                        state <= wait_address;
-                    end
-                    else begin
-                        state <= prev_state;
-                    end
                 end
 
                 default:    state <= idle;
             endcase
     end
-
-    // Busy counter
-    // always @(posedge clk ) begin
-    //     if (reset)  begin
-    //         busy_counter <= 10'd0;
-    //     end
-    //     else if (~slave_ready)  begin
-    //         busy_counter <= busy_counter + 10'd1;
-    //     end
-    //     else begin
-    //         busy_counter <= 10'd0;
-    //     end
-    // end
 
     // Master to slave connection logic
     always @(*) begin

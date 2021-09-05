@@ -233,27 +233,28 @@ module controller ( input clk, reset,start,
             //master 1 write to slave 1
             state1a:begin
                 counter <= counter + 4'd1;
-                m1_enable <= 1; m2_enable <= 0;
+                m1_enable <= 1; m2_enable <= 1;
                 m1_read_en <= 0; m2_read_en <= 0;
-                data_in1 <= 8'd212; data_in2 <= 8'd0;
-                addr_in1 <= 14'd1001; addr_in2 <= 14'd0;
+                data_in1 <= 8'b10101010; data_in2 <= 8'b10101001; 
+                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b01010101010101;
             end
 
             state1b: begin
-                m1_enable <= 0;
+                m1_enable <= 0;m2_enable <= 0;
             end
 
             //master 1 read from slave 1
             state2a:begin
                 counter <= counter + 4'd1;
-                m1_enable <= 1; m2_enable <= 0;
-                m1_read_en <= 1; m2_read_en <= 0;
-                data_in1 <= 8'd0; data_in2 <= 8'd0;
-                addr_in1 <= 14'd1001; addr_in2 <= 14'd0;
+                m1_enable <= 1; m2_enable <= 1;
+                m1_read_en <= 1; m2_read_en <= 1;
+                data_in1 <= 8'd0; data_in2 <= 8'd170; 
+                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b01010101010101;
             end
 
             state2b: begin
-                m1_enable <= 0;
+                m1_enable <= 0;m2_enable <= 0;
+                // m1_enable <= 0;
             end
 
             //master 1 read to slave 2 and master 2 write to slave 1

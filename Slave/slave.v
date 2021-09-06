@@ -108,9 +108,13 @@ module slave #(
                     else                                    next_state <= BWR;                    
                 end 
                 BAD : begin
-                    if ((counterADN == ADN))                next_state <= BRD;  
+                    if ((counterADN == ADN))                next_state <= BRDWait;  
                     else                                    next_state <= BAD;                    
                 end 
+                BRDWait: begin
+                    if((counterDelay < DelayN) || ~BusAvailable) next_state <= BRDWait;
+                    else                                         next_state <= BRD;
+                end
                 BRD : begin
                     if(counterBurst[BurstLenReg + 2])       next_state <= IDLE;
                     else                                    next_state <= BRD;      
@@ -135,6 +139,7 @@ module slave #(
                 counterADN   <= 0;
                 counterN     <= 0;
                 counterDelay <= 0;
+                counterBurst <= 0;
                 AddressReg   <= 0;
                 WriteDataReg <= 0;
                 ReadDataReg  <= 0;
@@ -305,6 +310,21 @@ module slave #(
                 else begin
                     AddressReg <= AddressReg;
                     ready      <= 0 ;
+                end   
+            end
+
+
+            ///////////////////////////////////////////////////////
+            BRDWait: begin
+                
+                if((counterDelay < DelayN)) begin
+                    counterDelay <= counterDelay + 1'b1;
+                    ready        <= 0 ;
+                    hold         <= 1 ;
+                end    
+                else begin
+                    ready      <= 1 ;
+                    hold       <= 0 ;
                 end   
             end
 

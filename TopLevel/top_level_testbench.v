@@ -23,7 +23,13 @@ module top_level_testbench ();
         $stop;
         // M2 writes to S2
         state_in = 5'd2; start = 1; #40; start = 0;
-        #1500;
+        #8000;
+        $stop;
+
+
+        // M2 writes to S2
+        state_in = 5'd4; start = 1; #40; start = 0;
+        #8000;
         $stop;
 
         // M1 reads from S2 and M2 reads from S1

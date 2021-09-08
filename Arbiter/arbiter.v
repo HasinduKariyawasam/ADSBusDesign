@@ -130,7 +130,7 @@ module arbiter(input clk, reset,
                     if (~m1_request && m2_hold) begin
                         connected_master <= 2'd2;
                         m1_hold          <= 0;   
-                        //m2_hold        <= 0; To support burst splits
+                        m2_hold        <= 0; //To support burst splits
                         state            <= connect;
 
                     end
@@ -139,7 +139,7 @@ module arbiter(input clk, reset,
                         state <= idle;
                     end
                     else if ((slave_hold) && (m2_request)) begin
-                        if(m1_hold)     state <= busy_m1;
+                        if(m1_hold && m1_address_buf==m2_address_buf)     state <= busy_m1;
                         else if (m2_hold) begin
                             state <= connect;
                             connected_master <= 2'd2;
@@ -161,14 +161,14 @@ module arbiter(input clk, reset,
                         connected_master <= 2'd1;
                         state <= connect;
                         m2_hold <= 0;
-                        //m1_hold        <= 0; To support burst splits
+                        m1_hold        <= 0; //To support burst splits
                     end
                     else if (~m2_request) begin
                         state <= idle;
                         m2_hold <= 0;
                     end 
                     else if ((slave_hold) && (m1_request)) begin
-                        if(m2_hold) state <= busy_m2;
+                        if(m2_hold && m1_address_buf==m2_address_buf) state <= busy_m2;
                         else if (m1_hold) begin
                             state <= connect;
                             connected_master <= 2'd1;
@@ -280,10 +280,10 @@ module arbiter(input clk, reset,
 
     assign connect_state = (connected_master == 2'd1 && slave_ready1 == 1) ? 4'd3 + m1_address_buf : 
                            (connected_master == 2'd1 && slave_ready1 == 0 && m2_hold == 1) ? 4'd6 + m2_address_buf :
-                           (connected_master == 2'd1 && slave_ready1 == 0 && m2_hold == 0 && m1_hold == 1) ? 4'd3 + m1_address_buf :
+                           (connected_master == 2'd1 && slave_ready1 == 0 && m2_hold == 0 ) ? 4'd3 + m1_address_buf :
                            (connected_master == 2'd2 && slave_ready2 == 1) ? 4'd6 + m2_address_buf : 
                            (connected_master == 2'd2 && slave_ready2 == 0 && m1_hold == 1) ? 4'd3 + m1_address_buf : 
-                           (connected_master == 2'd2 && slave_ready2 == 0 && m1_hold == 0 && m2_hold == 1) ? 4'd6 + m2_address_buf : 4'd0;
+                           (connected_master == 2'd2 && slave_ready2 == 0 && m1_hold == 0 ) ? 4'd6 + m2_address_buf : 4'd0;
 
     assign slave_ready1 = (m1_address_buf == 2'd0) ? s1_ready : (m1_address_buf == 2'd1) ? s2_ready : (m1_address_buf == 2'd2) ? s3_ready : 0;
     assign slave_ready2 = (m2_address_buf == 2'd0) ? s1_ready : (m2_address_buf == 2'd1) ? s2_ready : (m2_address_buf == 2'd2) ? s3_ready : 0;

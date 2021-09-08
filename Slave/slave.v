@@ -117,6 +117,7 @@ module slave #(
                 end
                 BRD : begin
                     if(counterBurst[BurstLenReg + 2])       next_state <= IDLE;
+                    else if( (counterDelay < DelayN) && ((counterBurst%4)==0) )  next_state <= BRDWait;
                     else                                    next_state <= BRD;      
                 end 
             endcase 
@@ -331,8 +332,9 @@ module slave #(
 
             /////////////////////////////////////////////////////////
             BRD: begin
+                if(counterDelay==0 && (counterBurst%4==0)) validOut <= 0;
 
-                if(~counterBurst[BurstLenReg+2]) begin
+                else if(~counterBurst[BurstLenReg+2]) begin
                     if ((counterN == 0)) begin
                         ReadDataReg <= BRAMmem[AddressReg];
                         AddressReg  <= AddressReg + 1'b1;
@@ -351,6 +353,7 @@ module slave #(
                             DataOut  <= 0;
                             ReadDataReg <= 0;
                             counterBurst <= counterBurst + 1'b1;
+                            counterDelay <=0;
                             counterN     <= 0;
                         end
                         else begin

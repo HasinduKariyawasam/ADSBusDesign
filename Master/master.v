@@ -392,9 +392,9 @@ idle:
 	master_busy <= 0;
 	w_counter <= 5'd0;
 	r_counter <= 5'd0;
-	burst_counter = 10'd0;
-	burst_size = 10'd0;
-
+	burst_counter <= 10'd0;
+	burst_size <= 10'd0;
+	burst_mode <= 0;
 	wait_counter <= 10'd0;
 	addr_tx <= 0;
 	data_tx <= 0;
@@ -628,11 +628,13 @@ read5:
 	else if (slave_valid == 1) //wait until slave_valid signal
 		begin
 		valid_s <= 0;
+		addr_tx <= 0;
 		r_counter <=0;
 		end
 	else
 		begin
 		valid_s <= 0;
+		addr_tx <= 0;
 		end
 	end
 

@@ -11,6 +11,7 @@ module controller ( input clk, reset,start,
     reg [4:0] state = 5'd0;
     reg [4:0] next_state = 5'd0; 
     reg [3:0] counter = 4'd0;
+    reg [7:0] mycounter = 8'd0;
 
     assign state_out = state;
 
@@ -224,7 +225,7 @@ module controller ( input clk, reset,start,
     always @(posedge clk) begin
         case (state)
             idle: begin
-                counter <= 4'd0;
+                counter <= 4'd0;mycounter <=0;
                 m1_enable <= 0; m2_enable <= 0;
                 m1_read_en <= 0; m2_read_en <= 0;
                 m1_burst_mode <= 3'd0;m2_burst_mode<=3'd0;
@@ -233,27 +234,28 @@ module controller ( input clk, reset,start,
                 m1_burst_mode <= 3'd0; m2_burst_mode <= 3'd0;
             end
 
-            //master 1 write to slave 1
+            //master 1 write to slave 2 address = 1365 data = 170
             state1a:begin
                 counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 1;
+                m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
                 m1_read_en <= 0; m2_read_en <= 0;
-                data_in1 <= 8'b10101010; data_in2 <= 8'b10101001; 
-                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b01010101010101;
+                data_in1 <= 8'b10101010; data_in2 <= 8'd132; 
+                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b00010101010101;
             end
 
             state1b: begin
                 m1_enable <= 0;m2_enable <= 0;
             end
 
-            //master 1 read from slave 1
+            //master 1 read from slave 2 address = 1365
             state2a:begin
                 counter <= counter + 4'd1;
-                m1_burst_mode <= 3'd1;m2_burst_mode<=3'd2;
                 m1_enable <= 1; m2_enable <= 1;
-                m1_read_en <= 0; m2_read_en <= 0;
+                // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
+                m1_read_en <= 1; m2_read_en <= 0;
                 data_in1 <= 8'd10; data_in2 <= 8'd170; 
-                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b01010101010101;
+                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b00010101010101;
             end
 
             state2b: begin
@@ -261,13 +263,14 @@ module controller ( input clk, reset,start,
                 // m1_enable <= 0;
             end
 
-            //master 1 read to slave 2 and master 2 write to slave 1
+            //master 1 read from slave 2 and master 2 read to slave 1
             state3a:begin
                 counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 0;
+                // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
                 m1_read_en <= 1; m2_read_en <= 0;
                 data_in1 <= 8'd0; data_in2 <= 8'd0;
-                addr_in1 <= 14'd5012; addr_in2 <= 14'd0;
+                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'd0;
             end
 
             state3c:begin
@@ -280,77 +283,87 @@ module controller ( input clk, reset,start,
                 end
                 else begin
                     m1_enable <= 0; m2_enable <= 1;
+                    // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
                     m1_read_en <= 0; m2_read_en <= 1;
                     data_in1 <= 8'd0; data_in2 <= 8'd0;
-                    addr_in1 <= 14'd0; addr_in2 <= 14'd1001; 
+                    addr_in1 <= 14'd0; addr_in2 <= 14'b00010101010101; 
                 end
                 
             end
 
             state3b: begin
-                m2_enable <= 0;
+                m1_enable <= 0; m2_enable <= 0;
+                // m2_enable <= 0;
             end
 
-            //master 1 read from slave 2    
+            //master 1 and master 2 read from slave 2   
             state4a:begin
                 counter <= counter + 4'd1;
-                m1_burst_mode <= 3'd1;m2_burst_mode<=3'd2;
                 m1_enable <= 1; m2_enable <= 1;
-                m1_read_en <= 1; m2_read_en <= 1;
-                data_in1 <= 8'd0; data_in2 <= 8'd0; 
-                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b01010101010101;
+                m1_burst_mode <= 3'd2;m2_burst_mode<=3'd0;
+                m1_read_en <= 1; m2_read_en <= 0;
+                data_in1 <= 8'd0; data_in2 <= 8'd170; 
+                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b00010101010101;
             end
 
             state4b: begin
-                m1_enable <= 0; m2_enable <= 0;
+                mycounter <= mycounter + 8'd1;
+                m1_enable <= 0;
+                if((mycounter%40)==0)    m2_enable <= 1;
+                else  m2_enable <= 0;
             end
 
-            //master 2 write to slave 2
+            //master 1 and master 2 write to slave 2
             state5a:begin
                 counter <= counter + 4'd1;
-                m1_enable <= 0; m2_enable <= 1;
+                m1_enable <= 1; m2_enable <= 1;
+                // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
                 m1_read_en <= 0; m2_read_en <= 0;
-                data_in2 <= 8'd101; data_in1 <= 8'd0;
-                addr_in2 <= 14'd5012; addr_in1 <= 14'd0;
+                data_in2 <= 8'd101; data_in1 <= 8'd170;
+                addr_in2 <= 14'b01010101010101; addr_in1 <= 14'b01010101010110;
             end
 
             state5b: begin
-                m2_enable <= 0;
+                m1_enable <= 0; m2_enable <= 0;
+                // m2_enable <= 0;
             end
 
-            //master 2 read from slave 2    
+            //master 2 read from slave 2 and master 1 read from slave 1
             state6a:begin
                 counter <= counter + 4'd1;
-                m1_enable <= 0; m2_enable <= 1;
+                m1_enable <= 1; m2_enable <= 1;
+                // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
                 m1_read_en <= 1; m2_read_en <= 1;
                 data_in2 <= 8'd0; data_in1 <= 8'd0;
-                addr_in2 <= 14'd5012; addr_in1 <= 14'd0;
+                addr_in2 <= 14'b00010101010101; addr_in1 <= 14'b01010101010101;
             end
 
             state6b: begin
                 m2_enable <= 0;
             end
 
-            //master 1,2 write at same time
+            //master 1 write to slave 1 and master 2 read from slave 1
             state7a:begin
                 counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 1;
-                m1_read_en <= 0; m2_read_en <= 0;
-                data_in1 <= 8'd102; data_in2 <= 8'd103;
-                addr_in1 <= 14'd5097; addr_in2 <= 14'd5098;
+                // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
+                m1_read_en <= 0; m2_read_en <= 1;
+                data_in1 <= 8'd102; data_in2 <= 8'd0;
+                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b01010101010101;
             end
 
             state7b: begin
                 m1_enable <= 0; m2_enable <= 0;
             end
 
-            //master 1,2 read at same time   
+            //master 1 read and master 2 write slave 1  
             state8a:begin
                 counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 1;
-                m1_read_en <= 1; m2_read_en <= 1;
-                data_in1 <= 8'd0; data_in2 <= 8'd0;
-                addr_in1 <= 14'd5098; addr_in2 <= 14'd5097;
+                // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
+                m1_read_en <= 1; m2_read_en <= 0;
+                data_in1 <= 8'd0; data_in2 <= 8'd124;
+                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'd5097;
             end
 
             state8b: begin
@@ -361,9 +374,10 @@ module controller ( input clk, reset,start,
             state9a:begin
                 counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 0;
-                m1_read_en <= 0; m2_read_en <= 0;
+                // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
+                m1_read_en <= 1; m2_read_en <= 0;
                 data_in1 <= 8'd78; data_in2 <= 8'd0;
-                addr_in1 <= 14'd5012; addr_in2 <= 14'd0;
+                addr_in1 <= 14'd5097; addr_in2 <= 14'd0;
             end
 
             state9c:begin
@@ -377,6 +391,7 @@ module controller ( input clk, reset,start,
                 else begin
                     m1_enable <= 0; m2_enable <= 1;
                     m1_read_en <= 0; m2_read_en <= 0;
+                    // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
                     data_in1 <= 8'd0; data_in2 <= 8'd62;
                     addr_in1 <= 14'd0; addr_in2 <= 14'd1001; 
                 end

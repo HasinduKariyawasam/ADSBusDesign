@@ -551,6 +551,7 @@ write5:
 	else if (w_counter == 5'd14)
 		begin
 		valid_s <= 0;
+		bus_req <= 0;
 		end
 	end	
 	

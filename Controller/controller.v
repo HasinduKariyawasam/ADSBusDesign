@@ -339,7 +339,7 @@ module controller ( input clk, reset,start,
             end
 
             state6b: begin
-                m2_enable <= 0;
+                m2_enable <= 0;m1_enable <= 0;
             end
 
             //master 1 write to slave 1 and master 2 read from slave 1

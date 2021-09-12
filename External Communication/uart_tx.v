@@ -60,9 +60,11 @@ module uart_tx (input clk, reset,
                 busy: begin
                     if (end_tx) begin
                         uart_busy   <= 0;
+                        start_tx    <= 0;
                         state_ctrl  <= idle;
                     end
                     else begin
+                        start_tx    <= 0;
                         uart_busy   <= 1;
                         state_ctrl  <= busy;
                     end

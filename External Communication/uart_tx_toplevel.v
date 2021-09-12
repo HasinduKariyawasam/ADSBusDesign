@@ -1,6 +1,6 @@
 module uart_tx_toplevel (input clk, reset,
                          input validIn, wren, Address, DataIn, BurstEn,
-                               BusAvailable, uart_busy, ack,
+                               BusAvailable, ack,
                          output [3:0] state_out,
                          output ready, validOut, hold, DataOut, ext_data_out);
 
@@ -16,7 +16,7 @@ module uart_tx_toplevel (input clk, reset,
                                                                       .ready(ready), .validOut(validOut), .hold(hold),
                                                                       .DataOut(DataOut));
 
-    uart_tx uart_tx(.clk(.clk), .reset(reset), .data_in(to_uart),
+    uart_tx uart_tx(.clk(clk), .reset(reset), .data_in(to_uart),
                     .tx_external(tx_external), .ack(ack), 
                     .data_out(ext_data_out), .uart_busy(uart_busy));
 

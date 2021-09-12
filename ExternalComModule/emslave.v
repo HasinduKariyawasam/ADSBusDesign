@@ -23,7 +23,7 @@ module emslave #(
     // output [ADN_BITS:0]counterADN_out,
     output reg  ready=0,validOut=0, hold=0,
 	output reg DataOut=0,
-    output reg [N-1:0] ExternalCounter = 0,
+    output reg [N-1:0] ExternalCounter = 8'd170,
     output reg ExternalUpdated = 0);
 
 
@@ -185,7 +185,7 @@ module emslave #(
                 else begin
                     if(counterN == N) begin
                         BRAMmem[AddressReg] <= WriteDataReg;
-                        ExternalCounter     <= WriteDataReg;
+                        ExternalCounter     <= WriteDataReg + 1'd1;
                         ExternalUpdated     <= 1;
                         ready      <= 1 ;
                     end

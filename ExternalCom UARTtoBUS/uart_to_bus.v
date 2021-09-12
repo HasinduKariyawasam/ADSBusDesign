@@ -25,7 +25,7 @@ module uart_to_bus (
 
     reg [7:0] data_buffer = 8'd0;		// reg to keep input data
     reg [13:0] addr_buffer1 = 14'd0;	// reg to keep the sending input address
-    reg [13:0] addr_buffer2 = 14'b10101010101010;    // reg to keep the pre-setup address 
+    reg [13:0] addr_buffer2 = 14'b01000000000000;    // reg to keep the pre-setup address 
     reg [9:0] wait_counter = 10'd0;
 
     reg [7:0] ack_pattern = 8'b11001100;    // initial pattern

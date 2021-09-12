@@ -2,11 +2,15 @@ module uart_tx (input clk, reset,
                 input [7:0] data_in,
                 input tx_external,
                       ack,
+                output reg [2:0] state_tx  = 3'd0,
+                output reg [1:0]state_ctrl = 2'd0,
+                output reg end_tx          = 0,
+                output tick,
                 output reg data_out,
                            uart_busy 
                 );
 
-    wire tick;
+    //wire tick;
     reg [2:0] retx_counter      = 3'd0;
     reg [3:0] counter           = 4'd0;
     reg [3:0] ack_counter       = 4'd0;
@@ -15,12 +19,13 @@ module uart_tx (input clk, reset,
     reg [7:0] ack_buf           = 8'd0;
     reg [19:0] ack_wait_counter = 20'd0;
     reg counter_en              = 0;
-    reg end_tx                  = 0;
+    // reg end_tx                  = 0;
     reg start_tx                = 0;
 
     //states of the controller
-    localparam idle = 0;
-    localparam busy = 1;
+    localparam idle     = 2'd0;
+    localparam busy     = 2'd1;
+    localparam delay    = 2'd2;
 
     //states of the transmitter
     localparam wait_tx      = 3'd0;
@@ -30,8 +35,8 @@ module uart_tx (input clk, reset,
     localparam wait_ack     = 3'd4;
     localparam read_ack     = 3'd5; 
 
-    reg state_ctrl      = idle;
-    reg [2:0] state_tx  = wait_tx;
+    //reg state_ctrl      = idle;
+    // reg [2:0] state_tx  = wait_tx;
 
     //UART clock generator (baudrate = 19200 bps)
     baud_gen baud_gen(.clk(clk), .tick(tick));
@@ -59,14 +64,28 @@ module uart_tx (input clk, reset,
                 //////////////////////////////////////////////////////////////
                 busy: begin
                     if (end_tx) begin
-                        uart_busy   <= 0;
+                        uart_busy   <= 1;
                         start_tx    <= 0;
-                        state_ctrl  <= idle;
+                        state_ctrl  <= delay;
                     end
                     else begin
-                        start_tx    <= 0;
-                        uart_busy   <= 1;
-                        state_ctrl  <= busy;
+                        if (state_tx == wait_tx) begin
+                            start_tx    <= 1;
+                            uart_busy   <= 1;
+                            state_ctrl  <= busy;   
+                        end
+                        else begin
+                            start_tx    <= 0;
+                            uart_busy   <= 1;
+                            state_ctrl  <= busy;
+                        end   
+                    end
+                end
+
+                delay: begin
+                    if (~end_tx) begin
+                        uart_busy   <= 0;
+                        state_ctrl  <= idle;
                     end
                 end
             endcase

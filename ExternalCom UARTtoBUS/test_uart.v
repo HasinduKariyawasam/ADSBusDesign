@@ -20,12 +20,13 @@ module uart_to_bus (
     reg [4:0] present = 5'd0;
     reg [4:0] next = 5'd0;
     reg [4:0] rx_present = 5'd0;
-    reg [4:0] tx_next = 5'd0;
+    reg [4:0] rx_next = 5'd0;
     reg [4:0] ack_present = 5'd0;
     reg [4:0] ack_next = 5'd0;
     reg [4:0] w_counter = 5'd0;
     reg [4:0] r_counter = 5'd0;
     reg rx_success = 0;
+    reg bus_tx_done = 0;
 
     reg [7:0] data_buffer1 = 8'd0;		// reg to keep input data
      reg [7:0] data_buffer2 = 8'd0;		// reg to send received data
@@ -40,17 +41,19 @@ module uart_to_bus (
 
 
     parameter
-    idle = 5'd0,
-    read1 = 5'd1,
-    check_bus = 5'd2,
-    write1 = 5'd3,
-    write2 = 5'd4,
-    write3 = 5'd5,
-    writex = 5'd6,
-    write4 = 5'd7,
-    write5 = 5'd8,
-    ack1 = 5'd9,
-    ack2 = 5'd10;
+    idle        = 5'd0,
+    read1       = 5'd1,
+    bus_tx      = 5'd2,
+    check_bus1  = 5'd3,
+    check_bus2  = 5'd4,
+    write1      = 5'd5,
+    write2      = 5'd6,
+    write3      = 5'd7,
+    writex      = 5'd8,
+    write4      = 5'd9,
+    write5      = 5'd10,
+    ack1        = 5'd11,
+    ack2        = 5'd12;
 
     always @(posedge clk) begin
         present <= next;
@@ -79,7 +82,6 @@ module uart_to_bus (
                     if (r_counter < 5'd9)       rx_next <= read1;
                     else if (rx_success == 1)   rx_next <= bus_tx;
                     else                        rx_next <= idle;
-                    end
                 end
 
                 bus_tx: begin
@@ -96,7 +98,7 @@ module uart_to_bus (
 
 //states for external data receiving
     always @ (posedge tick) begin
-        case (present_tick)
+        case (rx_present)
             idle: begin
                 data_buffer1 <= 8'd0;	
                 r_counter <= 5'd0;
@@ -112,7 +114,7 @@ module uart_to_bus (
                     r_counter <= r_counter + 1;
                 end
                 
-                else if (r_counter == 5'd9) begin
+                else if (r_counter == 5'd8) begin
                     if (data_rx == 1) begin
                         rx_success <= 1;
                         r_counter <= r_counter + 1;
@@ -125,7 +127,7 @@ module uart_to_bus (
 
                 else if (rx_success == 1) begin
                     data_read <= data_buffer1;
-                    data_buffer2 <= data_buffer1;
+                    
                     send_ack <= 1;
                     r_counter <=0;
                 end
@@ -139,7 +141,7 @@ module uart_to_bus (
                     r_counter <= r_counter + 1;
                 end
                 else begin
-                    send_ack <= 0
+                    send_ack <= 0;
                 end
             end
 
@@ -162,7 +164,7 @@ module uart_to_bus (
                 end
 
                 check_bus1: begin
-                    next <= check_bus2
+                    next <= check_bus2;
                 end
 
                 check_bus2: begin
@@ -216,6 +218,10 @@ module uart_to_bus (
                     else 
                         next <= idle;
                 end
+            endcase
+        end
+    end
+
 
 
 
@@ -246,6 +252,7 @@ module uart_to_bus (
             check_bus2: begin
                 if (bus_ready) begin
                     valid <= 0;
+                    data_buffer2 <= data_buffer1;
                 end  
                 else begin
                     valid <= 1;
@@ -390,9 +397,13 @@ module uart_to_bus (
             end
 
             ack2:begin
-                ack_counter <= ack_counter + 5'd1;
-                ack_out <= ack_buffer[7];
-                ack_buffer <= (ack_buffer << 1);
+                if (ack_counter < 5'd8) begin
+                    ack_counter <= ack_counter + 5'd1;
+                    ack_out <= ack_buffer[7];
+                    ack_buffer <= (ack_buffer << 1);
+                end
+                else ack_out <= 1;
+                
             end 
         endcase
         

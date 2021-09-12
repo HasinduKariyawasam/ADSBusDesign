@@ -45,7 +45,10 @@ module top (input clk, reset, start,
 
     // registers for the clock divider
     reg [24:0] counter;
-    reg tick;
+    //reg tick;
+    wire tick;
+    wire [7:0] to_uart;
+    wire [2:0] state_tx;
 
     // arbiter
     // arbiter arbiter(.clk(clk),
@@ -123,7 +126,7 @@ module top (input clk, reset, start,
                    .data_read(m1_data_read));
 
     // master 2
-    uart_to_bus master2(.clk(clk),
+    uart_to_bus master2(.clk(clk),.tick(tick),
                     .reset(reset),
                     .data_rx(ext_data_out),
                     .bus_ready(m2_available),
@@ -165,7 +168,10 @@ module top (input clk, reset, start,
                             .validOut(s1_valid_out),
                             .hold(s1_hold),
                             .DataOut(s1_data_out),
-                            .state_out(s1_state));
+                            .state_out(s1_state),
+                            .to_uart(to_uart),
+                            .state_tx(state_tx),
+                            .tick(tick));
 
     // slave 2
     emslave #(.MemN(2), .N(8), .DelayN(20), .ADN(12)) slave2(.validIn(s2_valid),

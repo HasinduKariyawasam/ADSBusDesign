@@ -14,22 +14,25 @@ module baud_gen (input clk, reset,
        ###########################################
     */
 
-    assign tick = clk;
-    // reg [12:0] counter = 13'd0;
+    // assign tick = clk;
+    reg [12:0] counter = 13'd0;
+    reg tick_reg;
 
-    // always @(posedge clk ) begin
-    //     if (reset) begin
-    //         tick <= 0;
-    //         counter <= 13'd0;
-    //     end
-    //     else if (counter == 13'd1) begin
-    //         tick <= 1;
-    //         counter <= 13'd0;
-    //     end
-    //     else begin
-    //         tick <= 0;
-    //         counter <= counter + 13'd1;
-    //     end
-    // end
+    assign tick = tick_reg;
+
+    always @(posedge clk ) begin
+        if (reset) begin
+            tick_reg <= 0;
+            counter <= 13'd0;
+        end
+        else if (counter == 13'd4) begin
+            tick_reg <= 1;
+            counter <= 13'd0;
+        end
+        else begin
+            tick_reg <= 0;
+            counter <= counter + 13'd1;
+        end
+    end
 
 endmodule //baud_gen

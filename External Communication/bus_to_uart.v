@@ -9,7 +9,8 @@ module bus_to_uart #(
 	input     validIn,wren, reset,
 	input     Address,DataIn, BurstEn,
 	input     clk,BusAvailable,
-    input     uart_busy,
+    input     uart_busy,end_tx,
+    
 	
 
 	// Output Ports
@@ -144,7 +145,7 @@ module bus_to_uart #(
         case(state)
             ///////////////////////////////////////////////////////
             IDLE: begin
-                ready        <= 1;
+                // ready        <= 1;
                 counterADN   <= 0;
                 counterN     <= 0;
                 counterDelay <= 0;
@@ -156,6 +157,8 @@ module bus_to_uart #(
                 hold         <= 0;
                 ext_tx       <= 0;
                 tx_external  <= 0;
+                if (end_tx)         ready <= 1;
+                else                ready <= 0;
 
             end
             ///////////////////////////////////////////////////////

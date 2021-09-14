@@ -14,10 +14,11 @@ module uart_to_bus (
     output reg valid_s = 0,		// valid signal for slave
     output reg write_en_slave = 1, 	// signal to select data read(=1)/write(=0) for slave
     output reg burst_mode = 0,
+    output reg [4:0] present = 5'd0, 
     output reg [7:0] data_read = 8'd0  //output the initial received value from U
     );
     
-    reg [4:0] present = 5'd0;
+    // reg [4:0] present = 5'd0;
     reg [4:0] next = 5'd0;
     reg [4:0] rx_present = 5'd0;
     reg [4:0] rx_next = 5'd0;

@@ -4,6 +4,7 @@ module uart_tx (input clk, reset,
                       ack,
                 output reg [2:0] state_tx  = 3'd0,
                 output reg [1:0]state_ctrl = 2'd0,
+                output reg [7:0] ack_buf   = 8'd0,
                 output reg end_tx          = 0,
                 output tick,
                 output reg data_out,
@@ -16,7 +17,7 @@ module uart_tx (input clk, reset,
     reg [3:0] ack_counter       = 4'd0;
     reg [7:0] data_tx           = 8'd0;
     reg [7:0] tx_buf            = 8'd0;
-    reg [7:0] ack_buf           = 8'd0;
+    // reg [7:0] ack_buf           = 8'd0;
     reg [19:0] ack_wait_counter = 20'd0;
     reg counter_en              = 0;
     // reg end_tx                  = 0;

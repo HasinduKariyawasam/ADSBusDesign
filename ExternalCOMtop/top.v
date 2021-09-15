@@ -7,7 +7,7 @@ module top (input clk, reset, start,
                   output [7:0] received_data_read,ExternalCounter, ack_buf,WriteDataReg,
                   output [2:0] arbiter_state, state_tx,
                   output [1:0] state_ctrl,
-                  output end_tx, tick, ext_data_out);
+                  output end_tx, tick, ext_data_out,ext_data_in,ack_in,ack_out, s2_data1);
 
     // wires from master to arbiter
     wire m1_request, m1_address, m1_data, m1_valid,
@@ -37,6 +37,9 @@ module top (input clk, reset, start,
     wire [2:0] burst_mode_in1,burst_mode_in2;
 
 
+    assign s2_data1 = s2_data;
+
+
     //wires from emslave to emmaster
     wire [7:0]  c;
     wire ExternalUpdated;
@@ -48,7 +51,7 @@ module top (input clk, reset, start,
     // registers for the clock divider
     reg [24:0] counter;
     //reg tick;
-    wire ack;
+    // wire ack;
     // wire [7:0] to_uart;
 //     wire [2:0] state_tx;
 
@@ -84,7 +87,7 @@ module top (input clk, reset, start,
                     .m1_write_en(m1_write_en), .m1_burst(m1_burst),
                     .m2_request(m2_request), .m2_address(m2_address), .m2_data(m2_data), 
                     .m2_valid(m2_valid), .m2_address_valid(m2_address_valid), 
-                    .m2_write_en(m2_write_en), .m2_burst(1'd0),
+                    .m2_write_en(1'd1), .m2_burst(1'd0),
                     .s1_data_in(s1_data_out), .s2_data_in(s2_data_out), .s3_data_in(s3_data_out),
                     .s1_ready(s1_ready), .s2_ready(s2_ready), .s3_ready(s3_ready),
                     .s1_valid_out(s1_valid_out), .s2_valid_out(s2_valid_out), .s3_valid_out(s3_valid_out),
@@ -130,9 +133,9 @@ module top (input clk, reset, start,
     // master 2
     uart_to_bus master2(.clk(clk),.tick(tick),
                     .reset(reset),
-                    .data_rx(ext_data_out),
+                    .data_rx(ext_data_in),
                     .bus_ready(m2_available),
-                    .ack_out(ack),
+                    .ack_out(ack_out),
                     .bus_req(m2_request),
                     .addr_tx(m2_address),
                     .data_tx(m2_data),
@@ -159,7 +162,7 @@ module top (input clk, reset, start,
     //                                             .state_out(s1_state));
     // slave 1
     uart_tx_toplevel slave1(.validIn(s1_valid),
-                            .ack(ack),
+                            .ack(ack_in),
                             .ext_data_out(ext_data_out),
                             .wren(s1_write_en),
                             .reset(reset),

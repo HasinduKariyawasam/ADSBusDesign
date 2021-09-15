@@ -3,6 +3,7 @@ module top_wrapper (
 
 input CLOCK_50,
 input  [17:0] SW,
+inout [7:0] GPIO,
 input [3:0] KEY,
 output [8:0] LEDG,
 output [17:0] LEDR,
@@ -20,7 +21,8 @@ wire [2:0] arbiter_state, state_tx;
 wire [1:0] state_ctrl;
 wire [7:0] ExternalCounter, ack_buf, received_data_read, to_uart, WriteDataReg;
 
-wire inclk, ena;
+wire inclk, ena,  ext_data_in,ack_in,ack_out;
+
 
 top top1(   .clk(clk), 
             .reset(reset), 
@@ -41,8 +43,19 @@ top top1(   .clk(clk),
             .received_data_read(received_data_read),
             .end_tx(end_tx),
             .tick(tick),
-            .ext_data_out(ext_data_out)
+            .ext_data_out(ext_data_out),
+            .ext_data_in(ext_data_in),
+            .ack_in(ack_in),
+            .ack_out(ack_out)
             );
+
+
+ assign GPIO[1] = ack_out;
+ assign ack_in  = GPIO[3];
+ assign LEDG[2]  = GPIO[3];
+ assign GPIO[5] = ext_data_out;
+ assign ext_data_in = GPIO[7];
+ assign LEDG[3] = GPIO[7];
 
 clock_divider clock_divider(.inclk(inclk),.ena(ena),.clk(clk));
 
@@ -58,7 +71,7 @@ char7 c2(ExternalCounter[7:4],HEX1);
 
 char7 c3(m2_state[3:0],HEX2);
 char7 c4(rx_present[3:0],HEX3);
-char7 c5(to_uart[3:0],HEX4);
+char7 c5(s2_state[3:0],HEX4);
 char7 c6(to_uart[7:4],HEX5);
 char7 c7(received_data_read[3:0],HEX6);
 char7 c8(received_data_read[7:4],HEX7);

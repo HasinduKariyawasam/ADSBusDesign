@@ -82,7 +82,7 @@ module uart_tx (input clk, reset,
                         end   
                     end
                 end
-
+                //////////////////////////////////////////////////////////////
                 delay: begin
                     if (~end_tx) begin
                         uart_busy   <= 0;

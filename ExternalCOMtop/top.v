@@ -140,7 +140,7 @@ module top (input clk, reset, start,
                     .valid_s(m2_valid),
                     .write_en_slave(m2_write_en),
                     .present(m2_state),
-                    .rx_present(rx_present)
+                    .rx_present(rx_present),
                     .data_read(received_data_read));
 
     // slave 1

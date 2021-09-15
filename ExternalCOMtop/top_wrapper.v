@@ -18,23 +18,29 @@ wire [7:0] m1_data_read, m2_data_read;
 wire [3:0] s1_state,s2_state,s3_state;
 wire [2:0] arbiter_state, state_tx;
 wire [1:0] state_ctrl;
-wire [7:0] ExternalCounter, ack_buf,received_data_read,to_uart,WriteDataReg;
+wire [7:0] ExternalCounter, ack_buf, received_data_read, to_uart, WriteDataReg;
 
 wire inclk, ena;
 
-top top(.clk(clk), .reset(reset), .start(start),
+top top1(   .clk(clk), 
+            .reset(reset), 
+            .start(start),
             .state_in(state_in),
             .rx_present(rx_present),
-            .m1_state(m1_state),.m2_state(m2_state),
+            .m1_state(m1_state),
+            .m2_state(m2_state),
             .to_uart(to_uart),
-            .s1_state(s1_state),s2_state(s2_state),
+            .s1_state(s1_state),
+            .s2_state(s2_state),
             .ExternalCounter(ExternalCounter),
             .ack_buf(ack_buf),
             .WriteDataReg(WriteDataReg),
             .arbiter_state(arbiter_state),
-            .state_tx(state_tx),.state_ctrl(state_ctrl),
+            .state_tx(state_tx),
+            .state_ctrl(state_ctrl),
             .received_data_read(received_data_read),
-            .end_tx(end_tx));
+            .end_tx(end_tx)
+            );
 
 clock_divider clock_divider(.inclk(inclk),.ena(ena),.clk(clk));
 
@@ -56,7 +62,7 @@ char7 c7(received_data_read[3:0],HEX6);
 char7 c8(received_data_read[7:4],HEX7);
 
 
-assign LEDR[16] = present[4];
+//assign LEDR[16] = present[4];
 
 assign LEDG[8] = clk;
 assign LEDG[7] = end_tx;

@@ -7,7 +7,7 @@ module top (input clk, reset, start,
                   output [7:0] received_data_read,ExternalCounter, ack_buf,WriteDataReg,
                   output [2:0] arbiter_state, state_tx,
                   output [1:0] state_ctrl,
-                  output end_tx);
+                  output end_tx, tick, ext_data_out);
 
     // wires from master to arbiter
     wire m1_request, m1_address, m1_data, m1_valid,
@@ -43,12 +43,12 @@ module top (input clk, reset, start,
 
 
     //wires from adsbustouart 
-    wire ack,ext_data_out;
+    // wire ack,ext_data_out;
 
     // registers for the clock divider
     reg [24:0] counter;
     //reg tick;
-    wire tick;
+    wire ack;
     // wire [7:0] to_uart;
 //     wire [2:0] state_tx;
 

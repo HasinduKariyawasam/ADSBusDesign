@@ -9,7 +9,7 @@ output [17:0] LEDR,
 output [6:0] HEX0,HEX1,HEX2,HEX3,HEX4,HEX5,HEX6,HEX7);
 
 
-wire clk, reset, start, end_tx;
+wire clk, reset, start, end_tx, tick, ext_data_out;
 wire [4:0] state_in;
 
 wire [4:0] controller_state, rx_present;
@@ -39,7 +39,9 @@ top top1(   .clk(clk),
             .state_tx(state_tx),
             .state_ctrl(state_ctrl),
             .received_data_read(received_data_read),
-            .end_tx(end_tx)
+            .end_tx(end_tx),
+            .tick(tick),
+            .ext_data_out(ext_data_out)
             );
 
 clock_divider clock_divider(.inclk(inclk),.ena(ena),.clk(clk));
@@ -54,8 +56,8 @@ char7 c1(ExternalCounter[3:0],HEX0);
 char7 c2(ExternalCounter[7:4],HEX1);
 
 
-char7 c3(WriteDataReg[3:0],HEX2);
-char7 c4(WriteDataReg[7:4],HEX3);
+char7 c3(m2_state[3:0],HEX2);
+char7 c4(rx_present[3:0],HEX3);
 char7 c5(to_uart[3:0],HEX4);
 char7 c6(to_uart[7:4],HEX5);
 char7 c7(received_data_read[3:0],HEX6);
@@ -66,6 +68,9 @@ char7 c8(received_data_read[7:4],HEX7);
 
 assign LEDG[8] = clk;
 assign LEDG[7] = end_tx;
+
+assign LEDG[0] = tick ;
+assign LEDG[1] = ext_data_out;
 
 assign LEDR[0] = state_tx[0];
 assign LEDR[1] = state_tx[1];

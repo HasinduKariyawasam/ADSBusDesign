@@ -7,8 +7,8 @@ module uart_tx (input clk, reset,
                 output reg [7:0] ack_buf   = 8'd0,
                 output reg end_tx          = 0,
                 output tick,
-                output reg data_out,
-                           uart_busy 
+                output reg data_out = 1,
+                output reg uart_busy 
                 );
 
     //wire tick;
@@ -94,7 +94,10 @@ module uart_tx (input clk, reset,
 
     //transmitter
     always @(posedge tick) begin
-        if (reset)  state_tx <= wait_tx;
+        if (reset) begin
+            data_out    <= 1;
+            state_tx <= wait_tx;
+        end  
         else
             case(state_tx)
                 ////////////////////////////////////////////////////////////

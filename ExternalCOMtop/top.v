@@ -1,11 +1,12 @@
 module top (input clk, reset, start,
                   input [4:0] state_in,
-                  output [4:0] controller_state, present,
+                  output [4:0] controller_state, rx_present,
                   output [5:0] m1_state, m2_state,
-                  output [7:0] m1_data_read, m2_data_read,
+                  output [7:0] m1_data_read, m2_data_read, to_uart,
                   output [3:0] s1_state,s2_state,s3_state,
-                  output [7:0] received_data_read,ExternalCounter, ack_buf,
+                  output [7:0] received_data_read,ExternalCounter, ack_buf,WriteDataReg,
                   output [2:0] arbiter_state, state_tx,
+                  output [1:0] state_ctrl,
                   output end_tx);
 
     // wires from master to arbiter
@@ -48,7 +49,7 @@ module top (input clk, reset, start,
     reg [24:0] counter;
     //reg tick;
     wire tick;
-    wire [7:0] to_uart;
+    // wire [7:0] to_uart;
 //     wire [2:0] state_tx;
 
     // arbiter
@@ -138,7 +139,8 @@ module top (input clk, reset, start,
                     .valid(m2_address_valid),
                     .valid_s(m2_valid),
                     .write_en_slave(m2_write_en),
-                    .present(present),
+                    .present(m2_state),
+                    .rx_present(rx_present)
                     .data_read(received_data_read));
 
     // slave 1
@@ -165,6 +167,7 @@ module top (input clk, reset, start,
                             .DataIn(s1_data),
                             .BurstEn(s1_burst),
                             .clk(clk),
+                            .WriteDataReg(WriteDataReg),
                             .BusAvailable(bus_ready_s1),
                             .ready(s1_ready),
                             .validOut(s1_valid_out),
@@ -173,6 +176,7 @@ module top (input clk, reset, start,
                             .state_out(s1_state),
                             .to_uart(to_uart),
                             .state_tx(state_tx),
+                            .state_ctrl(state_ctrl),
                             .ack_buf(ack_buf),
                             .end_tx(end_tx),
                             .tick(tick));

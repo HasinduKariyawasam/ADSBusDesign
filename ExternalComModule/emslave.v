@@ -141,6 +141,8 @@ module emslave #(
         case(state)
             ///////////////////////////////////////////////////////
             IDLE: begin
+                if(reset)  ExternalCounter <= 8'd170;
+                else       ExternalCounter <= ExternalCounter;
                 ready        <= 1;
                 counterADN   <= 0;
                 counterN     <= 0;

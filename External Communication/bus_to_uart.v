@@ -15,6 +15,7 @@ module bus_to_uart #(
 
 	// Output Ports
     output [3:0] state_out,
+    output reg [N-1:0]     WriteDataReg    = 0,
     output reg [N-1:0]  to_uart = 0,
     output reg          tx_external = 0,
     // output [2:0] next_state_out,
@@ -49,7 +50,6 @@ module bus_to_uart #(
     reg [3:0]       state           = IDLE;
     reg [3:0]       next_state;
     reg [ADN-1:0]   AddressReg      = 0;
-    reg [N-1:0]     WriteDataReg    = 0;
     reg [BN-1:0]    BurstLenReg     = 0;                //register to hold Burst Len   
     reg [N-1:0]     ReadDataReg     = 0;
     reg [N_BITS:0]  counterN        = 0;     

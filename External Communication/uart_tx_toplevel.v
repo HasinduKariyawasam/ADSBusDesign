@@ -6,6 +6,8 @@ module uart_tx_toplevel (input clk, reset,
                          output [2:0] state_tx,
                          output [1:0] state_ctrl,
                          output [7:0] ack_buf, 
+                         output [7:0]     WriteDataReg,
+
                          output end_tx,
                          output ready, validOut, hold, DataOut, ext_data_out,tick);
 
@@ -18,6 +20,7 @@ module uart_tx_toplevel (input clk, reset,
                                                                       .uart_busy(uart_busy),.end_tx(end_tx),
                                                                       .state_out(state_out), .to_uart(to_uart),
                                                                       .tx_external(tx_external),
+                                                                      .WriteDataReg(WriteDataReg),
                                                                       .ready(ready), .validOut(validOut), .hold(hold),
                                                                       .DataOut(DataOut));
 

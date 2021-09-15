@@ -195,6 +195,7 @@ module uart_tx (input clk, reset,
     end
 
     //wait counter for acknowledgement (10 ms timeout)
+    //Why not tick ? why clk?
     always @(posedge clk) begin
         if (reset)  ack_wait_counter    <= 20'd0;
         else begin

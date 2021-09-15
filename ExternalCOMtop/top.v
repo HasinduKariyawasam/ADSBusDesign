@@ -1,5 +1,6 @@
 module top (input clk, reset, start,
                   input [4:0] state_in,
+                  input ext_data_in,ack_in,
                   output [4:0] controller_state, rx_present,
                   output [5:0] m1_state, m2_state,
                   output [7:0] m1_data_read, m2_data_read, to_uart,
@@ -7,7 +8,7 @@ module top (input clk, reset, start,
                   output [7:0] received_data_read,ExternalCounter, ack_buf,WriteDataReg,
                   output [2:0] arbiter_state, state_tx,
                   output [1:0] state_ctrl,
-                  output end_tx, tick, ext_data_out,ext_data_in,ack_in,ack_out, s2_data1);
+                  output end_tx, tick, ext_data_out,ack_out, s2_data1);
 
     // wires from master to arbiter
     wire m1_request, m1_address, m1_data, m1_valid,

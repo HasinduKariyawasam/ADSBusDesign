@@ -101,15 +101,15 @@ module controller ( input clk, reset,start,
                 if (counter <4'd2)
                     next_state <= state3a;
                 else
-                    next_state <=state3c;
-            end
-
-            state3c:begin
-                if (counter <4'd10)
-                    next_state <= state3c;
-                else
                     next_state <=state3b;
             end
+
+            // state3c:begin
+            //     if (counter <4'd10)
+            //         next_state <= state3c;
+            //     else
+            //         next_state <=state3b;
+            // end
 
             state3b: begin
                 if (m1_request == 0 && m2_request == 0)
@@ -237,8 +237,8 @@ module controller ( input clk, reset,start,
             //master 1 write to slave 2 address = 1365 data = 170
             state1a:begin
                 counter <= counter + 4'd1;
-                m1_enable <= 1; m2_enable <= 1;
-                m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
+                m1_enable <= 1; m2_enable <=0;
+                m1_burst_mode <= 3'd0;m2_burst_mode<=3'd0;
                 m1_read_en <= 0; m2_read_en <= 0;
                 data_in1 <= 8'b10101010; data_in2 <= 8'd132; 
                 addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b00010101010101;
@@ -248,14 +248,14 @@ module controller ( input clk, reset,start,
                 m1_enable <= 0;m2_enable <= 0;
             end
 
-            //master 1 read from slave 2 address = 1365
+            //master 2 read from slave 2 address = 1365
             state2a:begin
                 counter <= counter + 4'd1;
-                m1_enable <= 1; m2_enable <= 1;
+                m1_enable <= 0; m2_enable <= 1;
                 // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
-                m1_read_en <= 1; m2_read_en <= 0;
-                data_in1 <= 8'd10; data_in2 <= 8'd170; 
-                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b00010101010101;
+                m1_read_en <= 0; m2_read_en <= 1;
+                data_in1 <= 8'd0; data_in2 <= 8'd0; 
+                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b01010101010101;
             end
 
             state2b: begin
@@ -263,107 +263,103 @@ module controller ( input clk, reset,start,
                 // m1_enable <= 0;
             end
 
-            //master 1 read from slave 2 and master 2 read to slave 1
+            //master 1 burst write (burst size = 16) to slave 1 address = 111
             state3a:begin
                 counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 0;
-                // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
-                m1_read_en <= 1; m2_read_en <= 0;
-                data_in1 <= 8'd0; data_in2 <= 8'd0;
-                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'd0;
+                m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
+                m1_read_en <= 0; m2_read_en <= 0;
+                data_in1 <= 8'h10; data_in2 <= 8'd0;
+                addr_in1 <= 14'b00000001101111; addr_in2 <= 14'd0;
             end
 
-            state3c:begin
-                counter <= counter + 4'd1;
-                if(counter < 4'd8) begin
-                    m1_enable <= 0; m2_enable <= 0;
-                    m1_read_en <= 0; m2_read_en <= 0;
-                    data_in1 <= 8'd0; data_in2 <= 8'd0;
-                    addr_in1 <= 14'd0; addr_in2 <= 14'd0;  
-                end
-                else begin
-                    m1_enable <= 0; m2_enable <= 1;
-                    // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
-                    m1_read_en <= 0; m2_read_en <= 1;
-                    data_in1 <= 8'd0; data_in2 <= 8'd0;
-                    addr_in1 <= 14'd0; addr_in2 <= 14'b00010101010101; 
-                end
+            // state3c:begin
+            //     counter <= counter + 4'd1;
+            //     if(counter < 4'd8) begin
+            //         m1_enable <= 0; m2_enable <= 0;
+            //         m1_read_en <= 0; m2_read_en <= 0;
+            //         data_in1 <= 8'd0; data_in2 <= 8'd0;
+            //         addr_in1 <= 14'd0; addr_in2 <= 14'd0;  
+            //     end
+            //     else begin
+            //         m1_enable <= 0; m2_enable <= 1;
+            //         // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
+            //         m1_read_en <= 0; m2_read_en <= 1;
+            //         data_in1 <= 8'd0; data_in2 <= 8'd0;
+            //         addr_in1 <= 14'd0; addr_in2 <= 14'b00010101010101; 
+            //     end
                 
-            end
+            // end
 
             state3b: begin
                 m1_enable <= 0; m2_enable <= 0;
-                // m2_enable <= 0;
             end
 
-            //master 1 and master 2 read from slave 2   
+            //master 2 burst read(burst size = 8) slave 1 address = 111  
             state4a:begin
                 counter <= counter + 4'd1;
-                m1_enable <= 1; m2_enable <= 1;
-                m1_burst_mode <= 3'd2;m2_burst_mode<=3'd0;
-                m1_read_en <= 1; m2_read_en <= 0;
-                data_in1 <= 8'd0; data_in2 <= 8'd170; 
-                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b00010101010101;
+                m1_enable <= 0; m2_enable <= 1;
+                m1_burst_mode <= 3'd0;m2_burst_mode<=3'd1;
+                m1_read_en <= 0; m2_read_en <= 1;
+                data_in1 <= 8'd0; data_in2 <= 8'd0; 
+                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b00000001101111;
             end
 
             state4b: begin
-                mycounter <= mycounter + 8'd1;
-                m1_enable <= 0;
-                if((mycounter%40)==0)    m2_enable <= 1;
-                else  m2_enable <= 0;
+                m1_enable <= 0; m2_enable <= 0;
             end
 
-            //master 1 and master 2 write to slave 2
+            //master 1 read slave 2 address 1365; master 2 read slave 1 address 111;
             state5a:begin
                 counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 1;
                 // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
-                m1_read_en <= 0; m2_read_en <= 0;
+                m1_read_en <= 1; m2_read_en <= 1;
                 data_in2 <= 8'd101; data_in1 <= 8'd170;
-                addr_in2 <= 14'b01010101010101; addr_in1 <= 14'b01010101010110;
+                addr_in2 <= 14'b01010101010101; addr_in1 <= 14'b00000001101111;
             end
 
             state5b: begin
                 m1_enable <= 0; m2_enable <= 0;
-                // m2_enable <= 0;
             end
 
-            //master 2 read from slave 2 and master 1 read from slave 1
+            //master 1 and master 2 read slave 2 address 1365;
             state6a:begin
                 counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 1;
                 // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
                 m1_read_en <= 1; m2_read_en <= 1;
                 data_in2 <= 8'd0; data_in1 <= 8'd0;
-                addr_in2 <= 14'b00010101010101; addr_in1 <= 14'b01010101010101;
+                addr_in2 <= 14'b01010101010101; addr_in1 <= 14'b01010101010101;
             end
 
             state6b: begin
                 m2_enable <= 0;m1_enable <= 0;
             end
 
-            //master 1 write to slave 1 and master 2 read from slave 1
+            //master 1 read slave 1 address 111; master 2 burst write(8) address 1365;
             state7a:begin
                 counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 1;
-                // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
-                m1_read_en <= 0; m2_read_en <= 1;
-                data_in1 <= 8'd102; data_in2 <= 8'd0;
-                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b01010101010101;
+                m1_burst_mode <= 3'd0;m2_burst_mode<=3'd1;
+                m1_read_en <= 1; m2_read_en <= 0;
+                data_in1 <= 8'd102; data_in2 <= 8'h30;
+                addr_in1 <= 14'b00000001101111; addr_in2 <= 14'b01010101010101;
             end
 
             state7b: begin
                 m1_enable <= 0; m2_enable <= 0;
             end
 
-            //master 1 read and master 2 write slave 1  
+            //master 1 burst read(8) slave 2 address 1365; 
+            //master 2 burst read(8) slave 1 address 111;  
             state8a:begin
                 counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 1;
-                // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
-                m1_read_en <= 1; m2_read_en <= 0;
+                m1_burst_mode <= 3'd1;m2_burst_mode<=3'd1;
+                m1_read_en <= 1; m2_read_en <= 1;
                 data_in1 <= 8'd0; data_in2 <= 8'd124;
-                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'd5097;
+                addr_in1 <= 14'b01010101010101; addr_in2 <= 14'b00000001101111;
             end
 
             state8b: begin

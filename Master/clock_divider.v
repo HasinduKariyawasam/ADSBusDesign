@@ -1,6 +1,6 @@
 module clock_divider(inclk,ena,clk);
 
- parameter maxcount=32'd12500000;
+ parameter maxcount=32'd2500000;
 
  input inclk;
  input ena;

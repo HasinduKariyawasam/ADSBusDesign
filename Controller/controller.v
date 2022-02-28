@@ -201,12 +201,6 @@ module controller ( input clk, reset,start,
                     next_state <=state9c;
             end
 
-            state9c:begin
-                if (counter <4'd10)
-                    next_state <= state9c;
-                else
-                    next_state <=state9b;
-            end
 
             state9b: begin
                 if (m1_request == 0 && m2_request == 0)
@@ -330,7 +324,8 @@ module controller ( input clk, reset,start,
                 // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
                 m1_read_en <= 1; m2_read_en <= 1;
                 data_in2 <= 8'd0; data_in1 <= 8'd0;
-                addr_in2 <= 14'b01010101010101; addr_in1 <= 14'b01010101010101;
+                // addr_in2 <= 14'b01010101010101; addr_in1 <= 14'b01010101010101;
+                addr_in2 <= 14'b10010101010101; addr_in1 <= 14'b10010101010101;
             end
 
             state6b: begin
@@ -366,33 +361,16 @@ module controller ( input clk, reset,start,
                 m1_enable <= 0; m2_enable <= 0;
             end
 
-            //master 1 write to slave 2 and master 2 write to slave 1
+            //master 1 write to slave 3 address 1365
             state9a:begin
                 counter <= counter + 4'd1;
                 m1_enable <= 1; m2_enable <= 0;
                 // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
-                m1_read_en <= 1; m2_read_en <= 0;
-                data_in1 <= 8'd78; data_in2 <= 8'd0;
-                addr_in1 <= 14'd5097; addr_in2 <= 14'd0;
+                m1_read_en <= 0; m2_read_en <= 0;
+                data_in1 <= 8'h20; data_in2 <= 8'd0;
+                addr_in1 <= 14'b10010101010101; addr_in2 <= 14'd0;
             end
 
-            state9c:begin
-                counter <= counter + 4'd1;
-                if(counter < 4'd8) begin
-                    m1_enable <= 0; m2_enable <= 0;
-                    m1_read_en <= 0; m2_read_en <= 0;
-                    data_in1 <= 8'd0; data_in2 <= 8'd0;
-                    addr_in1 <= 14'd0; addr_in2 <= 14'd0;  
-                end
-                else begin
-                    m1_enable <= 0; m2_enable <= 1;
-                    m1_read_en <= 0; m2_read_en <= 0;
-                    // m1_burst_mode <= 3'd2;m2_burst_mode<=3'd2;
-                    data_in1 <= 8'd0; data_in2 <= 8'd62;
-                    addr_in1 <= 14'd0; addr_in2 <= 14'd1001; 
-                end
-                
-            end
 
             state9b: begin
                 m2_enable <= 0;

@@ -50,39 +50,39 @@ top top1(   .clk(inclk),
             .ack_out(ack_out)
             );
 
-top top2(   .clk(inclk), 
-            .reset(reset), 
-            .start(1'd0),
-            .state_in(5'd0),
-            // .rx_present(rx_present),
-            // .m1_state(m1_state),
-            // .m2_state(m2_state),
-            // .to_uart(to_uart),
-            // .s1_state(s1_state),
-            // .s2_state(s2_state),
-            .ExternalCounter(ExternalCounter2),
-            .receiver_en(receiver_en),
-            // .ack_buf(ack_buf),
-            // .WriteDataReg(WriteDataReg),
-            // .arbiter_state(arbiter_state),
-            // .state_tx(state_tx),
-            // .state_ctrl(state_ctrl),
-            // .received_data_read(received_data_read),
-            // .end_tx(end_tx),
-            // .tick(tick),
-            .ext_data_out(ext_data_in),
-            .ext_data_in(ext_data_out),
-            .ack_in(ack_out),
-            .ack_out(ack_in)
-            );
+// top top2(   .clk(inclk), 
+//             .reset(reset), 
+//             .start(1'd0),
+//             .state_in(5'd0),
+//             // .rx_present(rx_present),
+//             // .m1_state(m1_state),
+//             // .m2_state(m2_state),
+//             // .to_uart(to_uart),
+//             // .s1_state(s1_state),
+//             // .s2_state(s2_state),
+//             .ExternalCounter(ExternalCounter2),
+//             .receiver_en(receiver_en),
+//             // .ack_buf(ack_buf),
+//             // .WriteDataReg(WriteDataReg),
+//             // .arbiter_state(arbiter_state),
+//             // .state_tx(state_tx),
+//             // .state_ctrl(state_ctrl),
+//             // .received_data_read(received_data_read),
+//             // .end_tx(end_tx),
+//             // .tick(tick),
+//             .ext_data_out(ext_data_in),
+//             .ext_data_in(ext_data_out),
+//             .ack_in(ack_out),
+//             .ack_out(ack_in)
+//             );
 
 
-//  assign GPIO[1] = ack_out;
-//  assign ack_in  = GPIO[3];
-//  assign LEDG[2]  = GPIO[3];
-//  assign GPIO[5] = ext_data_out;
-//  assign ext_data_in = GPIO[7];
-//  assign LEDG[3] = GPIO[7];
+ assign GPIO[1] = ack_out;
+ assign ack_in  = GPIO[3];
+ assign LEDG[2]  = GPIO[3];
+ assign GPIO[5] = ext_data_out;
+ assign ext_data_in = GPIO[7];
+ assign LEDG[3] = GPIO[7];
 
 clock_divider clock_divider(.inclk(inclk),.ena(ena),.clk(clk));
 
@@ -99,8 +99,8 @@ char7 c2(ExternalCounter1[7:4],HEX1);
 
 char7 c3(m2_state[3:0],HEX2);
 char7 c4(rx_present[3:0],HEX3);
-char7 c5(ExternalCounter2[3:0],HEX4);
-char7 c6(ExternalCounter2[7:4],HEX5);
+// char7 c5(ExternalCounter2[3:0],HEX4);
+// char7 c6(ExternalCounter2[7:4],HEX5);
 char7 c7(received_data_read[3:0],HEX6);
 char7 c8(received_data_read[7:4],HEX7);
 

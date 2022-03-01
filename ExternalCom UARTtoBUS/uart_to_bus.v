@@ -408,8 +408,8 @@ module uart_to_bus (
             ack2:begin
                 if (ack_counter < 5'd8) begin
                     ack_counter <= ack_counter + 5'd1;
-                    ack_out <= ack_buffer[7];
-                    ack_buffer <= (ack_buffer << 1);
+                    ack_out <= ack_buffer[0];
+                    ack_buffer <= (ack_buffer >> 1);
                 end
                 else ack_out <= 1;
                 

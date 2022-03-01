@@ -175,7 +175,7 @@ module uart_tx (input clk, reset,
                         state_tx        <= read_ack;
                     end
                     else begin
-                        if (ack_buf == ack_buf) begin
+                        if (ack_buf == 8'd204) begin
                             end_tx      <= 1;
                             ack_counter <= 4'd0;
                             state_tx    <= wait_tx;

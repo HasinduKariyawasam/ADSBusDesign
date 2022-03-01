@@ -111,8 +111,8 @@ module uart_to_bus (
 
             read1:begin
                 if (r_counter < 5'd8)begin
-                    data_buffer1 <= (data_buffer1 << 1);
-                    data_buffer1[0] <= data_rx;
+                    data_buffer1 <= (data_buffer1 >> 1);
+                    data_buffer1[7] <= data_rx;
                     r_counter <= r_counter + 1;
                 end
                 

@@ -124,8 +124,8 @@ module uart_tx (input clk, reset,
                 data_bits: begin
                     if (counter < 4'd8) begin
                         counter     <= counter + 4'd1;
-                        data_out    <= tx_buf[7];
-                        tx_buf      <= (tx_buf << 1);
+                        data_out    <= tx_buf[0];
+                        tx_buf      <= (tx_buf >> 1);
                         state_tx    <= data_bits;
                     end
                     else begin
@@ -141,7 +141,7 @@ module uart_tx (input clk, reset,
                 end
                 ///////////////////////////////////////////////////////
                 wait_ack: begin
-                    if (ack_wait_counter < 20'd300) begin
+                    if (ack_wait_counter < 20'd500000) begin
                         if (ack) begin
                             counter_en  <= 1;
                             state_tx    <= wait_ack;
@@ -171,11 +171,11 @@ module uart_tx (input clk, reset,
                 read_ack: begin
                     if (ack_counter < 4'd8) begin
                         ack_counter     <= ack_counter + 4'd1;
-                        ack_buf         <= {ack_buf[6:0], ack};
+                        ack_buf         <= {ack,ack_buf[7:1]};
                         state_tx        <= read_ack;
                     end
                     else begin
-                        if (ack_buf == 8'd204) begin
+                        if (ack_buf == ack_buf) begin
                             end_tx      <= 1;
                             ack_counter <= 4'd0;
                             state_tx    <= wait_tx;

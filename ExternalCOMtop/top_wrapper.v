@@ -78,11 +78,11 @@ top top1(   .clk(inclk),
 
 
  assign GPIO[1] = ack_out;
- assign ack_in  = GPIO[3];
- assign LEDG[2]  = GPIO[3];
- assign GPIO[5] = ext_data_out;
- assign ext_data_in = GPIO[7];
- assign LEDG[3] = GPIO[7];
+ assign ack_in  = GPIO[2];
+ assign LEDG[2]  = GPIO[2];
+ assign GPIO[3] = ext_data_out;
+ assign ext_data_in = GPIO[0];
+ assign LEDG[3] = GPIO[0];
 
 clock_divider clock_divider(.inclk(inclk),.ena(ena),.clk(clk));
 

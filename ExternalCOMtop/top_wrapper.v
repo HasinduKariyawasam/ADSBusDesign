@@ -24,7 +24,7 @@ wire [7:0] ExternalCounter1, ExternalCounter2, ack_buf, received_data_read, to_u
 wire inclk, ena,  ext_data_in,ack_in,ack_out,receiver_en;
 
 
-top top1(   .clk(clk), 
+top top1(   .clk(inclk), 
             .reset(reset), 
             .start(start),
             .state_in(state_in),
@@ -50,7 +50,7 @@ top top1(   .clk(clk),
             .ack_out(ack_out)
             );
 
-top top2(   .clk(clk), 
+top top2(   .clk(inclk), 
             .reset(reset), 
             .start(1'd0),
             .state_in(5'd0),

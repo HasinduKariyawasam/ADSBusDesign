@@ -42,6 +42,7 @@ module emslave #(
     localparam BAD      = 4'd7;
     localparam BRDWait  = 4'd8;
     localparam BRD      = 4'd9;
+    localparam Delay    = 4'd10;
 
 
 
@@ -55,6 +56,7 @@ module emslave #(
     reg [N_BITS:0]  counterN        = 0;     
     reg [ADN_BITS:0]counterADN      = 0;
     reg [10:0]      counterDelay    = 0;
+    reg [31:0]      externalDelay   = 0;
     reg [1:0]       counterBN       = 0;                //counter to count burst decode
     reg [9:0]       counterBurst    = 0;                //counter to track burst length
 
@@ -93,8 +95,12 @@ module emslave #(
                     else                                    next_state <= AD;
                 end
                 ADWR: begin
-                    if(counterN == N)                       next_state <= IDLE;
+                    if(counterN == N)                       next_state <= Delay;
                     else                                    next_state <= ADWR;
+                end
+                Delay: begin
+                    if(externalDelay == 32'd250000000)      next_state <= IDLE;
+                    else                                    next_state <= Delay;
                 end
                 RDWait: begin
                     if((counterDelay < DelayN) || ~BusAvailable) next_state <= RDWait;
@@ -154,7 +160,7 @@ module emslave #(
                 DataOut      <= 0;
                 hold         <= 0;
                 ExternalUpdated <= 0;
-
+                externalDelay <= 0;
             end
             ///////////////////////////////////////////////////////
             AD: begin
@@ -187,9 +193,9 @@ module emslave #(
                 else begin
                     if(counterN == N) begin
                         BRAMmem[AddressReg] <= WriteDataReg;
-                        ExternalCounter     <= WriteDataReg + 1'd1;
-                        ExternalUpdated     <= 1;
-                        ready      <= 1 ;
+                        // ExternalCounter     <= WriteDataReg + 1'd1;
+                        // ExternalUpdated     <= 1;
+                        // ready      <= 1 ;
                     end
                     else begin
                         AddressReg <= AddressReg;
@@ -198,7 +204,17 @@ module emslave #(
                     end    
                 end 
             end
-
+            ///////////////////////////////////////////////////////
+            Delay: begin
+                if(externalDelay == 32'd250000000) begin
+                    ExternalCounter     <= WriteDataReg + 1'd1;
+                    ExternalUpdated     <= 1;
+                    ready      <= 1 ;
+                end
+                else begin
+                    externalDelay <= externalDelay + 32'd1;
+                end
+            end
             ///////////////////////////////////////////////////////
             RDWait: begin
                 

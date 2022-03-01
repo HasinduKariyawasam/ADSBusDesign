@@ -25,7 +25,7 @@ module baud_gen (input clk, reset,
             tick_reg <= 0;
             counter <= 13'd0;
         end
-        else if (counter == 13'd4) begin
+        else if (counter == 13'd5208) begin
             tick_reg <= 1;
             counter <= 13'd0;
         end

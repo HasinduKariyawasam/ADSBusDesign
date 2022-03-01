@@ -21,7 +21,7 @@ wire [2:0] arbiter_state, state_tx;
 wire [1:0] state_ctrl;
 wire [7:0] ExternalCounter1, ExternalCounter2, ack_buf, received_data_read, to_uart, WriteDataReg;
 
-wire inclk, ena,  ext_data_in,ack_in,ack_out;
+wire inclk, ena,  ext_data_in,ack_in,ack_out,receiver_en;
 
 
 top top1(   .clk(clk), 
@@ -41,6 +41,7 @@ top top1(   .clk(clk),
             .state_tx(state_tx),
             .state_ctrl(state_ctrl),
             .received_data_read(received_data_read),
+            .receiver_en(receiver_en),
             .end_tx(end_tx),
             .tick(tick),
             .ext_data_out(ext_data_out),
@@ -60,6 +61,7 @@ top top2(   .clk(clk),
             // .s1_state(s1_state),
             // .s2_state(s2_state),
             .ExternalCounter(ExternalCounter2),
+            .receiver_en(receiver_en),
             // .ack_buf(ack_buf),
             // .WriteDataReg(WriteDataReg),
             // .arbiter_state(arbiter_state),
@@ -88,6 +90,7 @@ assign inclk = CLOCK_50;
 assign reset = SW[17];
 assign start = SW[15];
 assign ena   = SW[16];
+assign receiver_en = SW[14];
 assign state_in = SW[4:0];
 
 char7 c1(ExternalCounter1[3:0],HEX0);

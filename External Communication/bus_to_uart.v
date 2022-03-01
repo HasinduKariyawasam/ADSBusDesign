@@ -25,7 +25,7 @@ module bus_to_uart #(
     // output [N_BITS:0]  counterN_out,
     // output [ADN_BITS:0]counterADN_out,
     output reg  ready=0,validOut=0, hold=0,
-	output reg DataOut=0);
+	output reg DataOut=1);
 
 
     reg [ N-1 : 0 ] BRAMmem [0 : MemN*1024-1];      //BRAM Block

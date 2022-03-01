@@ -96,9 +96,12 @@ assign state_in = SW[4:0];
 char7 c1(ExternalCounter1[3:0],HEX0);
 char7 c2(ExternalCounter1[7:4],HEX1);
 
-
-char7 c3(m2_state[3:0],HEX2);
-char7 c4(rx_present[3:0],HEX3);
+assign HEX2 = 7'h7F;
+assign HEX3 = 7'h7F;
+assign HEX4 = 7'h7F;
+assign HEX5 = 7'h7F;
+// char7 c3(m2_state[3:0],HEX2);
+// char7 c4(rx_present[3:0],HEX3);
 // char7 c5(ExternalCounter2[3:0],HEX4);
 // char7 c6(ExternalCounter2[7:4],HEX5);
 char7 c7(received_data_read[3:0],HEX6);
